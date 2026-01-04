@@ -3,7 +3,7 @@ const isDevelopment = window.location.hostname === 'localhost' || window.locatio
 
 export const API_BASE_URL = isDevelopment 
   ? 'http://localhost:3001'
-  : 'https://your-backend-app.railway.app'; // SẼ CẬP NHẬT SAU KHI DEPLOY BACKEND
+  : 'https://web-production-335ab.up.railway.app'; // BACKEND URL ĐÃ CẬP NHẬT
 
 export const API_ENDPOINTS = {
   base: `${API_BASE_URL}/api`,
