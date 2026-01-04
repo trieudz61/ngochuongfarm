@@ -1,38 +1,62 @@
 // Test backend deployment
 import https from 'https';
+import { URL } from 'url';
 
 const testBackend = async (backendUrl) => {
   console.log('🧪 Testing backend:', backendUrl);
   
+  const makeRequest = (url) => {
+    return new Promise((resolve, reject) => {
+      const parsedUrl = new URL(url);
+      const options = {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || 443,
+        path: parsedUrl.pathname + parsedUrl.search,
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      };
+
+      const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => data += chunk);
+        res.on('end', () => {
+          try {
+            const response = JSON.parse(data);
+            resolve(response);
+          } catch (error) {
+            console.log('Raw response:', data);
+            reject(error);
+          }
+        });
+      });
+
+      req.on('error', reject);
+      req.end();
+    });
+  };
+  
   try {
     // Test health endpoint
     console.log('\n1. Testing health endpoint...');
-    const healthResponse = await fetch(`${backendUrl}/api/health`);
-    if (healthResponse.ok) {
-      const health = await healthResponse.json();
-      console.log('✅ Health check:', health);
-    } else {
-      console.log('❌ Health check failed:', healthResponse.status);
-    }
+    const health = await makeRequest(`${backendUrl}/api/health`);
+    console.log('✅ Health check:', health);
     
     // Test products endpoint
     console.log('\n2. Testing products endpoint...');
-    const productsResponse = await fetch(`${backendUrl}/api/products`);
-    if (productsResponse.ok) {
-      const products = await productsResponse.json();
-      console.log('✅ Products loaded:', products.length, 'items');
-    } else {
-      console.log('❌ Products failed:', productsResponse.status);
+    const products = await makeRequest(`${backendUrl}/api/products`);
+    console.log('✅ Products response:', products);
+    if (products.success && products.data) {
+      console.log(`   📦 Found ${products.data.length} products`);
     }
     
     // Test news endpoint
     console.log('\n3. Testing news endpoint...');
-    const newsResponse = await fetch(`${backendUrl}/api/news`);
-    if (newsResponse.ok) {
-      const news = await newsResponse.json();
-      console.log('✅ News loaded:', news.length, 'items');
-    } else {
-      console.log('❌ News failed:', newsResponse.status);
+    const news = await makeRequest(`${backendUrl}/api/news`);
+    console.log('✅ News response:', news);
+    if (news.success && news.data) {
+      console.log(`   📰 Found ${news.data.length} news articles`);
     }
     
     console.log('\n🎯 Backend URL để cập nhật:', backendUrl);
