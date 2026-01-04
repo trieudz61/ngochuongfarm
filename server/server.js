@@ -733,6 +733,195 @@ app.get('/api/health', (req, res) => {
   res.json(formatResponse(true, { status: 'OK', timestamp: new Date().toISOString() }));
 });
 
+// Seed data endpoint (chỉ dùng để khởi tạo dữ liệu mẫu)
+app.post('/api/seed-data', (req, res) => {
+  const adminSecret = req.headers['x-admin-secret'] || req.query.secret;
+  if (adminSecret !== 'ngochuongfarm2024') {
+    return res.status(403).json(formatResponse(false, null, 'Unauthorized: Invalid admin secret'));
+  }
+
+  console.log('🌱 Seeding sample data...');
+  
+  // Sample products
+  const sampleProducts = [
+    {
+      id: uuidv4(),
+      name: 'Rau cải xanh hữu cơ',
+      price: 25000,
+      unit: 'kg',
+      category: 'Rau lá',
+      origin: 'Đà Lạt',
+      harvestDate: '2024-01-01',
+      certifications: JSON.stringify(['Hữu cơ', 'VietGAP']),
+      images: JSON.stringify(['/uploads/sample-cai-xanh.jpg']),
+      stock: 50,
+      description: 'Rau cải xanh tươi ngon, trồng theo phương pháp hữu cơ',
+      cultivationProcess: 'Không sử dụng thuốc trừ sâu, phân bón hóa học',
+      isFeatured: 1,
+      averageRating: 4.5
+    },
+    {
+      id: uuidv4(),
+      name: 'Cà chua cherry',
+      price: 45000,
+      unit: 'kg',
+      category: 'Trái cây',
+      origin: 'Lâm Đồng',
+      harvestDate: '2024-01-02',
+      certifications: JSON.stringify(['VietGAP']),
+      images: JSON.stringify(['/uploads/sample-ca-chua.jpg']),
+      stock: 30,
+      description: 'Cà chua cherry ngọt tự nhiên, giàu vitamin C',
+      cultivationProcess: 'Trồng trong nhà kính, tưới nước nhỏ giọt',
+      isFeatured: 1,
+      averageRating: 4.8
+    },
+    {
+      id: uuidv4(),
+      name: 'Xà lách xoăn',
+      price: 20000,
+      unit: 'kg',
+      category: 'Rau lá',
+      origin: 'Đà Lạt',
+      harvestDate: '2024-01-03',
+      certifications: JSON.stringify(['Hữu cơ']),
+      images: JSON.stringify(['/uploads/sample-xa-lach.jpg']),
+      stock: 40,
+      description: 'Xà lách xoăn giòn ngọt, thích hợp làm salad',
+      cultivationProcess: 'Trồng thủy canh, không đất',
+      isFeatured: 0,
+      averageRating: 4.2
+    }
+  ];
+
+  // Sample news
+  const sampleNews = [
+    {
+      id: uuidv4(),
+      title: 'Kỹ thuật trồng rau sạch tại nhà',
+      summary: 'Hướng dẫn chi tiết cách trồng rau sạch ngay tại nhà với chi phí thấp',
+      content: 'Nội dung chi tiết về kỹ thuật trồng rau sạch tại nhà bao gồm: chọn giống, chuẩn bị đất, chăm sóc và thu hoạch.',
+      image: '/uploads/sample-news-1.jpg',
+      category: 'Kỹ thuật',
+      author: 'Ngọc Hường Farm'
+    },
+    {
+      id: uuidv4(),
+      title: 'Lợi ích của thực phẩm hữu cơ',
+      summary: 'Tại sao nên chọn thực phẩm hữu cơ cho sức khỏe gia đình',
+      content: 'Thực phẩm hữu cơ mang lại nhiều lợi ích cho sức khỏe: không chứa hóa chất độc hại, giàu dinh dưỡng, thân thiện với môi trường.',
+      image: '/uploads/sample-news-2.jpg',
+      category: 'Sức khỏe',
+      author: 'Ngọc Hường Farm'
+    }
+  ];
+
+  // Sample coupons
+  const sampleCoupons = [
+    {
+      id: uuidv4(),
+      code: 'WELCOME10',
+      discountType: 'percentage',
+      discountValue: 10,
+      minOrderValue: 100000,
+      expiryDate: '2024-12-31',
+      isActive: 1
+    },
+    {
+      id: uuidv4(),
+      code: 'FREESHIP',
+      discountType: 'fixed',
+      discountValue: 30000,
+      minOrderValue: 200000,
+      expiryDate: '2024-12-31',
+      isActive: 1
+    }
+  ];
+
+  db.serialize(() => {
+    let completed = 0;
+    const total = sampleProducts.length + sampleNews.length + sampleCoupons.length;
+
+    // Insert products
+    const productStmt = db.prepare(`
+      INSERT OR REPLACE INTO products 
+      (id, name, price, unit, category, origin, harvestDate, certifications, images, stock, description, cultivationProcess, isFeatured, averageRating)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    sampleProducts.forEach(product => {
+      productStmt.run([
+        product.id, product.name, product.price, product.unit, product.category,
+        product.origin, product.harvestDate, product.certifications, product.images,
+        product.stock, product.description, product.cultivationProcess,
+        product.isFeatured, product.averageRating
+      ], function(err) {
+        if (err) console.error('Error inserting product:', err);
+        completed++;
+        if (completed === total) {
+          res.json(formatResponse(true, {
+            message: 'Sample data seeded successfully',
+            products: sampleProducts.length,
+            news: sampleNews.length,
+            coupons: sampleCoupons.length
+          }));
+        }
+      });
+    });
+    productStmt.finalize();
+
+    // Insert news
+    const newsStmt = db.prepare(`
+      INSERT OR REPLACE INTO news (id, title, summary, content, image, category, author)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    sampleNews.forEach(article => {
+      newsStmt.run([
+        article.id, article.title, article.summary, article.content,
+        article.image, article.category, article.author
+      ], function(err) {
+        if (err) console.error('Error inserting news:', err);
+        completed++;
+        if (completed === total) {
+          res.json(formatResponse(true, {
+            message: 'Sample data seeded successfully',
+            products: sampleProducts.length,
+            news: sampleNews.length,
+            coupons: sampleCoupons.length
+          }));
+        }
+      });
+    });
+    newsStmt.finalize();
+
+    // Insert coupons
+    const couponStmt = db.prepare(`
+      INSERT OR REPLACE INTO coupons (id, code, discountType, discountValue, minOrderValue, expiryDate, isActive)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    sampleCoupons.forEach(coupon => {
+      couponStmt.run([
+        coupon.id, coupon.code, coupon.discountType, coupon.discountValue,
+        coupon.minOrderValue, coupon.expiryDate, coupon.isActive
+      ], function(err) {
+        if (err) console.error('Error inserting coupon:', err);
+        completed++;
+        if (completed === total) {
+          res.json(formatResponse(true, {
+            message: 'Sample data seeded successfully',
+            products: sampleProducts.length,
+            news: sampleNews.length,
+            coupons: sampleCoupons.length
+          }));
+        }
+      });
+    });
+    couponStmt.finalize();
+  });
+});
+
 // Serve frontend trong production
 if (process.env.NODE_ENV === 'production') {
   app.get('*', (req, res) => {
