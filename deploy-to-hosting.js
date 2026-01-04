@@ -1,11 +1,11 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
 
 console.log('🚀 Chuẩn bị deploy lên shared hosting...');
 
 // Build frontend
 console.log('📦 Đang build frontend...');
-const { execSync } = require('child_process');
 
 try {
   execSync('npm run build', { stdio: 'inherit' });

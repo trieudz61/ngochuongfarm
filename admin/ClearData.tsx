@@ -4,6 +4,7 @@ import { RootState, AppDispatch, fetchOrders } from '../store';
 import { Trash2, AlertTriangle, CheckCircle, Database, HardDrive, RefreshCw, BarChart3 } from 'lucide-react';
 import AdminLayout from '../components/AdminLayout';
 import { clearAnalyticsData, getAnalytics } from '../utils/analytics';
+import { getApiUrl } from '../src/config/api.js';
 
 const ClearData: React.FC = () => {
   const orders = useSelector((state: RootState) => state.app.orders);
@@ -58,10 +59,6 @@ const ClearData: React.FC = () => {
     setIsClearing(true);
     setClearStatus('idle');
     setMessage('');
-
-import { getApiUrl } from '../src/config/api.js';
-
-// ... existing code ...
 
     try {
       // 1. Xóa tất cả orders trong database qua API

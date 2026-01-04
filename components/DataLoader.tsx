@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { AppDispatch, fetchProducts, fetchNews, fetchCoupons } from '../store';
 import { getCookieId } from '../utils/cookieManager';
+import { getApiUrl } from '../src/config/api.js';
 
 const DataLoader: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -14,11 +15,7 @@ const DataLoader: React.FC = () => {
     console.log(`[DataLoader] Cookie ID: ${cookieId}`);
     
     // Kiểm tra backend có online không
-import { getApiUrl } from '../src/config/api.js';
-
-// ... existing code ...
-
-        const checkBackend = async () => {
+    const checkBackend = async () => {
       try {
         const response = await fetch(`${getApiUrl('/api')}/health`);
         if (response.ok) {

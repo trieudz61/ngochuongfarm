@@ -1,6 +1,6 @@
 // Script để cập nhật API URL sau khi deploy backend
-const fs = require('fs');
-const readline = require('readline');
+import fs from 'fs';
+import readline from 'readline';
 
 const rl = readline.createInterface({
   input: process.stdin,

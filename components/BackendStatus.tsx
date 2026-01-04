@@ -1,16 +1,13 @@
 // Component hiển thị trạng thái backend
 import { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle, X } from 'lucide-react';
+import { getApiUrl } from '../src/config/api.js';
 
 const BackendStatus: React.FC = () => {
   const [status, setStatus] = useState<'checking' | 'online' | 'offline'>('checking');
   const [showWarning, setShowWarning] = useState(true);
 
   useEffect(() => {
-import { getApiUrl } from '../src/config/api.js';
-
-// ... existing code ...
-
     const checkBackend = async () => {
       try {
         const response = await fetch(`${getApiUrl('/api')}/health`, {

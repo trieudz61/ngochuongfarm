@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { RootState } from '../store';
 import ProductCard from '../components/ProductCard';
+import { getApiUrl } from '../src/config/api.js';
 
 const Home: React.FC = () => {
   const products = useSelector((state: RootState) => state.app.products);
@@ -204,10 +205,6 @@ const Home: React.FC = () => {
                 onClick={() => setShowCertificateModal(true)}
               >
                 {/* Ảnh chứng chỉ TQC Full - không padding, full viền */}
-import { getApiUrl } from '../src/config/api.js';
-
-// ... existing code ...
-
                 <img 
                   src={`${getApiUrl('/uploads')}/tqc-certificate.jpg?t=${Date.now()}`}
                   alt="TQC Certificate - TCVN 11041-2:2017" 
