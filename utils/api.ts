@@ -1,6 +1,28 @@
 // API Service Layer - Kết nối với backend database
 
-const API_BASE_URL = (import.meta.env && import.meta.env.VITE_API_URL) || 'http://localhost:3001/api';
+// Detect environment và set API URL
+const getApiBaseUrl = () => {
+  // Nếu có VITE_API_URL trong env, dùng nó
+  if (import.meta.env && import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Detect production environment
+  const isDevelopment = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1' ||
+                       window.location.hostname === '0.0.0.0';
+  
+  if (isDevelopment) {
+    return 'http://localhost:3001/api';
+  } else {
+    // Production: sử dụng Railway backend
+    return 'https://web-production-335ab.up.railway.app/api';
+  }
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+console.log('🔗 API Base URL:', API_BASE_URL);
 
 interface ApiResponse<T> {
   success: boolean;
