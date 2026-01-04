@@ -1,0 +1,23 @@
+{
+  "name": "Ngoc Huong Farm Backend",
+  "description": "Backend API for Ngoc Huong Farm e-commerce",
+  "repository": "https://github.com/trieudz61/ngoc-huong-farm",
+  "keywords": ["node", "express", "sqlite", "api"],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "env": {
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production"
+    },
+    "GEMINI_API_KEY": {
+      "description": "Google Gemini API Key for AI features"
+    }
+  },
+  "scripts": {
+    "postdeploy": "cd server && npm install"
+  }
+}
