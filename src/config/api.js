@@ -1,9 +1,11 @@
 // API Configuration
+import { BACKEND_URL } from '../../config.js';
+
 const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 export const API_BASE_URL = isDevelopment 
   ? 'http://localhost:3001'
-  : 'https://web-production-335ab.up.railway.app'; // BACKEND URL ĐÃ CẬP NHẬT
+  : BACKEND_URL; // URL từ config tập trung
 
 export const API_ENDPOINTS = {
   base: `${API_BASE_URL}/api`,

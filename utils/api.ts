@@ -1,4 +1,5 @@
 // API Service Layer - Kết nối với backend database
+import { BACKEND_URL } from '../config.js';
 
 // Detect environment và set API URL
 const getApiBaseUrl = () => {
@@ -15,8 +16,8 @@ const getApiBaseUrl = () => {
   if (isDevelopment) {
     return 'http://localhost:3001/api';
   } else {
-    // Production: sử dụng Railway backend
-    return 'https://web-production-335ab.up.railway.app/api';
+    // Production: sử dụng URL từ config
+    return `${BACKEND_URL}/api`;
   }
 };
 
@@ -103,10 +104,11 @@ export const productsAPI = {
       const formData = new FormData();
       formData.append('image', file);
       
-      const API_BASE_URL = (import.meta.env && import.meta.env.VITE_API_URL) || 'http://localhost:3001/api';
-      console.log(`[Upload] Uploading image: ${file.name} (${(file.size / 1024).toFixed(2)}KB) to ${API_BASE_URL}/products/upload-image`);
+      // Sử dụng cùng logic detect môi trường với API_BASE_URL global
+      const uploadBaseUrl = API_BASE_URL.replace('/api', '');
+      console.log(`[Upload] Uploading image: ${file.name} (${(file.size / 1024).toFixed(2)}KB) to ${uploadBaseUrl}/api/products/upload-image`);
       
-      const response = await fetch(`${API_BASE_URL}/products/upload-image`, {
+      const response = await fetch(`${uploadBaseUrl}/api/products/upload-image`, {
         method: 'POST',
         body: formData,
         // KHÔNG set Content-Type header, browser sẽ tự động set với boundary
@@ -133,8 +135,7 @@ export const productsAPI = {
       
       // Nếu là relative URL, convert thành full URL
       if (imageUrl.startsWith('/uploads/')) {
-        const baseUrl = API_BASE_URL.replace('/api', '');
-        const fullUrl = `${baseUrl}${imageUrl}`;
+        const fullUrl = `${uploadBaseUrl}${imageUrl}`;
         console.log(`[Upload] Image uploaded successfully: ${fullUrl}`);
         return fullUrl;
       }
@@ -166,8 +167,9 @@ export const newsAPI = {
       const formData = new FormData();
       formData.append('image', file);
       
-      const API_BASE_URL = (import.meta.env && import.meta.env.VITE_API_URL) || 'http://localhost:3001/api';
-      const response = await fetch(`${API_BASE_URL}/news/upload-image`, {
+      // Sử dụng cùng logic detect môi trường với API_BASE_URL global
+      const uploadBaseUrl = API_BASE_URL.replace('/api', '');
+      const response = await fetch(`${uploadBaseUrl}/api/news/upload-image`, {
         method: 'POST',
         body: formData,
       });
@@ -189,8 +191,7 @@ export const newsAPI = {
       }
       
       if (imageUrl.startsWith('/uploads/')) {
-        const baseUrl = API_BASE_URL.replace('/api', '');
-        return `${baseUrl}${imageUrl}`;
+        return `${uploadBaseUrl}${imageUrl}`;
       }
       
       return imageUrl;
@@ -207,8 +208,9 @@ export const newsAPI = {
       const formData = new FormData();
       formData.append('video', file);
       
-      const API_BASE_URL = (import.meta.env && import.meta.env.VITE_API_URL) || 'http://localhost:3001/api';
-      const response = await fetch(`${API_BASE_URL}/news/upload-video`, {
+      // Sử dụng cùng logic detect môi trường với API_BASE_URL global
+      const uploadBaseUrl = API_BASE_URL.replace('/api', '');
+      const response = await fetch(`${uploadBaseUrl}/api/news/upload-video`, {
         method: 'POST',
         body: formData,
       });
@@ -230,8 +232,7 @@ export const newsAPI = {
       }
       
       if (videoUrl.startsWith('/uploads/')) {
-        const baseUrl = API_BASE_URL.replace('/api', '');
-        return `${baseUrl}${videoUrl}`;
+        return `${uploadBaseUrl}${videoUrl}`;
       }
       
       return videoUrl;

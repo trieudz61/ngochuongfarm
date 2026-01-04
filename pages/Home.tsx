@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { BACKEND_URL } from '../config.js';
 import { 
   ArrowRight, 
   Leaf, 
@@ -21,7 +22,6 @@ import {
 } from 'lucide-react';
 import { RootState } from '../store';
 import ProductCard from '../components/ProductCard';
-import { getApiUrl } from '../src/config/api.js';
 
 const Home: React.FC = () => {
   const products = useSelector((state: RootState) => state.app.products);
@@ -204,9 +204,9 @@ const Home: React.FC = () => {
                 className="aspect-square rounded-[3rem] md:rounded-[5rem] overflow-hidden border-8 border-green-100 shadow-2xl relative group bg-white cursor-pointer"
                 onClick={() => setShowCertificateModal(true)}
               >
-                {/* Ảnh chứng chỉ TQC thật từ server/uploads */}
+                {/* Ảnh chứng chỉ TQC thật từ server */}
                 <img 
-                  src={`${getApiUrl()}/uploads/tqc-certificate.jpg`}
+                  src={`${BACKEND_URL}/uploads/3b401876-30cd-41d0-a15b-3dd98a1b5d48.jpg`}
                   alt="TQC Certificate - TCVN 11041-2:2017" 
                   className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
                   onLoad={() => console.log('✅ TQC Certificate loaded successfully!')}
@@ -301,7 +301,7 @@ const Home: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <img 
-              src={`${getApiUrl()}/uploads/tqc-certificate.jpg`}
+              src={`${BACKEND_URL}/uploads/3b401876-30cd-41d0-a15b-3dd98a1b5d48.jpg`}
               alt="TQC Certificate - TCVN 11041-2:2017" 
               className="w-full h-full object-contain rounded-2xl shadow-2xl"
             />

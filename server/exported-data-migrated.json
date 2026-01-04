@@ -1,0 +1,295 @@
+{
+  "products": [
+    {
+      "id": "P1767440905413",
+      "name": "Cam Vinh Loại 1",
+      "price": 60000,
+      "unit": "KG",
+      "category": "Trái cây",
+      "origin": "Thanh Chương, Nghệ An",
+      "harvestDate": "2026-01-03",
+      "certifications": [
+        "VietGAP"
+      ],
+      "images": [
+        "https://web-production-335ab.up.railway.app/uploads/82312ebf-fac5-4f97-b806-269fb2f7dbc9.jpg",
+        "https://web-production-335ab.up.railway.app/uploads/2574437e-26f5-44ba-9fc5-5ab54b2fe0fa.jpg"
+      ],
+      "stock": 9999,
+      "description": "Cam Vinh là đặc sản nổi tiếng của Nghệ An, được trồng theo phương pháp hữu cơ tốt cho sức khỏe. Quả tròn đều, vỏ mỏng, màu vàng cam đẹp, múi nhiều nước, vị ngọt thanh pha chút chua nhẹ, hương thơm tự nhiên và giàu vitamin C. Việc canh tác hữu cơ giúp trái không chứa dư lượng thuốc bảo vệ thực vật, an toàn cho người tiêu dùng và giữ được dinh dưỡng tự nhiên.",
+      "cultivationProcess": "",
+      "isFeatured": false,
+      "averageRating": 0,
+      "createdAt": "2026-01-03 11:48:25",
+      "updatedAt": "2026-01-03 11:48:25"
+    },
+    {
+      "id": "P1767441597626",
+      "name": "Mật Ong Hoa Cam",
+      "price": 350000,
+      "unit": "Lít",
+      "category": "Khác",
+      "origin": "Thanh Chương, Nghệ An",
+      "harvestDate": "2026-01-03",
+      "certifications": [
+        "VietGAP"
+      ],
+      "images": [
+        "https://web-production-335ab.up.railway.app/uploads/085ce611-7068-489b-a1a4-de7c52f445b3.jpg",
+        "https://web-production-335ab.up.railway.app/uploads/730b6732-a1e8-455d-a3e9-27aa36828e75.jpg",
+        "https://web-production-335ab.up.railway.app/uploads/addd5e21-719c-4ca4-88af-dccdf32731e1.jpg"
+      ],
+      "stock": 999,
+      "description": "Mật ong nuôi từ hoa cam có màu vàng óng, hương thơm dịu đặc trưng của hoa cam, vị ngọt thanh, dễ uống. Ong được nuôi trong vùng trồng cam tự nhiên nên mật giàu enzyme, vitamin và khoáng chất, tốt cho tiêu hóa, tăng đề kháng và bồi bổ sức khỏe.",
+      "cultivationProcess": "",
+      "isFeatured": false,
+      "averageRating": 0,
+      "createdAt": "2026-01-03 11:59:57",
+      "updatedAt": "2026-01-04 03:49:10"
+    },
+    {
+      "id": "P1767442021354",
+      "name": "Cam Bù",
+      "price": 35000,
+      "unit": "kg",
+      "category": "Trái cây",
+      "origin": "Thanh Chương, Nghệ An",
+      "harvestDate": "2026-01-03",
+      "certifications": [
+        "VietGAP"
+      ],
+      "images": [
+        "https://web-production-335ab.up.railway.app/uploads/5f761e71-f701-4802-b641-a272c3bebe48.jpg"
+      ],
+      "stock": 9999,
+      "description": "Cam bù là đặc sản truyền thống, quả to tròn, vỏ dày, màu vàng cam đậm, múi chắc và nhiều nước. Vị ngọt đậm pha chút chua nhẹ, hương thơm rõ, thường chín rộ vào dịp cuối năm và rất được ưa chuộng để ăn tươi, biếu tặng.",
+      "cultivationProcess": "",
+      "isFeatured": false,
+      "averageRating": 0,
+      "createdAt": "2026-01-03 12:07:01",
+      "updatedAt": "2026-01-03 12:07:01"
+    },
+    {
+      "id": "b985aaf7-01c2-4875-a9f4-3d23a07f942f",
+      "name": "Rau cải xanh hữu cơ",
+      "price": 25000,
+      "unit": "kg",
+      "category": "Rau lá",
+      "origin": "Đà Lạt",
+      "harvestDate": "2024-01-01",
+      "certifications": [
+        "Hữu cơ",
+        "VietGAP"
+      ],
+      "images": [
+        "/uploads/sample-cai-xanh.jpg"
+      ],
+      "stock": 50,
+      "description": "Rau cải xanh tươi ngon, trồng theo phương pháp hữu cơ",
+      "cultivationProcess": "Không sử dụng thuốc trừ sâu, phân bón hóa học",
+      "isFeatured": true,
+      "averageRating": 4.5,
+      "createdAt": "2026-01-04 12:35:01",
+      "updatedAt": "2026-01-04 12:35:01"
+    },
+    {
+      "id": "9e947986-6f9c-40dd-b2f8-ff031ee5364f",
+      "name": "Cà chua cherry",
+      "price": 45000,
+      "unit": "kg",
+      "category": "Trái cây",
+      "origin": "Lâm Đồng",
+      "harvestDate": "2024-01-02",
+      "certifications": [
+        "VietGAP"
+      ],
+      "images": [
+        "/uploads/sample-ca-chua.jpg"
+      ],
+      "stock": 30,
+      "description": "Cà chua cherry ngọt tự nhiên, giàu vitamin C",
+      "cultivationProcess": "Trồng trong nhà kính, tưới nước nhỏ giọt",
+      "isFeatured": true,
+      "averageRating": 4.8,
+      "createdAt": "2026-01-04 12:35:01",
+      "updatedAt": "2026-01-04 12:35:01"
+    },
+    {
+      "id": "90801691-7099-45c3-8804-17499240114d",
+      "name": "Xà lách xoăn",
+      "price": 20000,
+      "unit": "kg",
+      "category": "Rau lá",
+      "origin": "Đà Lạt",
+      "harvestDate": "2024-01-03",
+      "certifications": [
+        "Hữu cơ"
+      ],
+      "images": [
+        "/uploads/sample-xa-lach.jpg"
+      ],
+      "stock": 40,
+      "description": "Xà lách xoăn giòn ngọt, thích hợp làm salad",
+      "cultivationProcess": "Trồng thủy canh, không đất",
+      "isFeatured": false,
+      "averageRating": 4.2,
+      "createdAt": "2026-01-04 12:35:01",
+      "updatedAt": "2026-01-04 12:35:01"
+    }
+  ],
+  "news": [
+    {
+      "id": "N1767498803672",
+      "title": "Làm giàu trên quê hương cách mạng",
+      "summary": "Bài báo được viết bởi Đại Biểu Nhân Dân Tỉnh Nghệ An",
+      "content": "<article class=\"article-detail\">\n            <header>\n                                                <h1 class=\"post-title title title-1\">Làm giàu trên quê hương cách mạng                                    </h1>\n                <div class=\"actions float-right\">\n    </div>            </header>\n            <div class=\"post-meta\">\n                <div class=\"post-date\">\n                    <i class=\"fa fa-clock-o\"></i>\n                    10/02/2025 lúc 14:00 (GMT)\n                    <!-- - 1071 lượt xem -->\n                </div>\n            </div>\n            <div class=\"sapo title-2 font-bold mt-3 mb-3\">Từ nhiều năm nay mỗi lúc nhắc đến Hạnh Lâm- một trong những cái nôi cách mạng của huyện Thanh Chương mọi người đều có ấn tượng về một vùng đất năng động, phát triển. Đây là xã vùng cao biên giới đầu tiên của tỉnh Nghệ An được công nhận “đạt chuẩn Nông thôn mới”. Trong thành tích chung đó có sự đóng góp không nhỏ của nhiều cá nhân, hộ gia đình. Trong đó gia đình ông bà: Hà Hữu Ngọc- Nguyễn Thị Hường ở xóm 3 là một ví dụ.</div>\n                        \n            <div id=\"post_content\" class=\"post-content\">\n                                    <figure class=\"image \"><img src=\"\thttps://dbndnghean.vn/dbndna-media/25/2/17/lam-giau-tren-que-huong-cach-mang.jpg\" alt=\"\" width=\"1280\" height=\"720\">\n<figcaption>Toàn cảnh trang trại của gia đình Hường- Ngọc</figcaption>\n</figure>\n<p style=\"text-align: justify;\">Ông Hà Hữu Ngọc và bà Nguyễn Thị Hương cùng sinh năm 1976 tại xóm 3 xã Thanh Đức. Sinh ra trong những gia đình nông dân nghèo ở một xã vùng cao xa trung tâm nên cả ông Ngọc và bà Hường chỉ học hết bậc THCS và cũng không giống với bạn bè cùng trang lứa rời quê đi làm ăn xa họ đã kết hôn vào năm 1995 và quyết định lập thân lập nghiệp ngay chính trên mảnh đất quê hương. Bà Hường cho biết khi quyết định lập nghiệp tại quê nhà dù chưa có vốn nhưng vợ chồng đã quyết định vay mượn mua gom đất đồi rừng để đầu tư vào việc trồng keo và cây ăn quả. Sau 2 năm tích cực gom đất, vợ chồng đã gom được 20 ha liền vùng liền thửa ở gần nhà tiện lợi cho việc sản xuất, thâm canh. Nói là sản xuất nhưng ở giai đoạn đầu toàn bộ 20 ha đất này chỉ được trồng keo. Sau khi thu hoạch 3 lứa (5 năm một lứa) với tổng thu nhập trên 4 tỷ đồng, từ năm 2016, khi xã và huyện có chủ trương hỗ trợ nông dân trồng cây ăn quả, vợ chồng ông đã quyết định chọn vùng đất tốt nhất để chuyển đổi từ keo sang trồng cam, bưởi. Được sự giúp đỡ về nguồn vốn, KHKT và cây giống, ông Ngọc và bà Hường đã đầu tư trồng 5 ha cam các loại, chủ yếu là Xã Đoài, V2 chín muộn, 0,5 cam bù bản địa, 0,5 ha bưởi, 0,5 ha quýt.</p>\n<figure class=\"image \"><img src=\"https://dbndnghean.vn/dbndna-media/25/2/17/lam-giau-tren-que-huong-cach-mang--n1.jpg\" alt=\"\" width=\"1280\" height=\"960\">\n<figcaption>Ông Nguyễn Văn Đệ- Phó Chủ tịch UBND tỉnh Nghệ An và lãnh đạo Sở Nông nghiệp &amp;PTNT thăm vườn cam của gia đình Ông Ngọc- Bà Hường</figcaption>\n</figure>\n<p style=\"text-align: justify;\">Sau giai đoạn kiến thiết cơ bản đầu tư chăm bón, bắt đầu từ năm 2019 các loại cam, bưởi đã bắt đầu cho thu hoạch. Vụ đầu chỉ được 50 triệu đồng, từ các năm sau doanh thu được nâng lên, năm 2022 đạt 500 triệu đồng, năm 2023 đã thu về trên 1 tỷ đồng, năm 2024 này đạt trên 1,5 tỷ đồng sau khi trừ các chi phí.</p>\n<figure class=\"image \"><img src=\"https://dbndnghean.vn/dbndna-media/25/2/17/lam-giau-tren-que-huong-cach-mang--n2.jpg\" alt=\"\" width=\"1276\" height=\"956\">\n<figcaption>Ông Trình Văn Nhã - P. Bí thư Huyện ủy, Chủ tịch UBND huyện và các đồng chí lãnh đạo UBND, Hội nông dân huyện kiểm tra đánh giấ chất lượng mô hình cam hữu cơ của Ông Ngọc- Bà Hường</figcaption>\n</figure>\n<p style=\"text-align: justify;\">Nét đáng chú ý nhất trong quá trình trồng chăm sóc cam và các loại cây ăn quả khác của vợ chồng ông Ngọc là phải tuân thủ nghiêm ngặt các yêu cầu về KHKT và cây giống.&nbsp; Đó là cây giống phải đảm bảo nguồn gốc, đạt tiêu chuẩn. Bởi từ khi trồng đến lúc cho quả phải mất từ 3-4 năm, nếu cây giống không chuẩn sẽ rất lãng phí tài nguyên đất đai, công sức, thời gian. Ngoài cây giống phải bón các loại phân có chất lượng, bón đúng thời điểm. Ngoài phân còn phải làm tốt việc phòng trừ sâu bệnh. Để đảm bảo được các yêu cầu này, ông bà đã liên kết với Học viên Nông nghiệp Việt nam lấy giống từ gốc, có bảo hành và lấy các loại phân bón, chế phẩm như nấm xanh, nấm trắng để cải tạo đất và phòng trừ sâu bệnh, tiến tới liên kết thực hiên kỹ thuật trồng cam hữu cơ. Nhờ vậy nên Học viện Nông nghiệp Việt Nam đã thường xuyên cử chuyên gia, kỹ thuật viên hỗ trợ gia đình trong quá trình trồng, chăm sóc, thu hoạch cam và phối hợp với Hội nông dân huyện, xã đăng ký nhãn hiệu, giới thiệu, bao tiêu sản phẩm cho vườn cam. Từ cách làm của vợ chồng ông Ngọc hiện tại ở Hạnh Lâm và Thanh Đức đã có hàng chục hộ trồng cam theo mô hình liên kết này.</p>\n<figure class=\"image \"><img src=\"https://dbndnghean.vn/dbndna-media/25/2/17/lam-giau-tren-que-huong-cach-mang--n3.jpg\" alt=\"\" width=\"1280\" height=\"830\">\n<figcaption>Lễ công bố Cam Ngọc Hường được công nhận là cam hữu cơ</figcaption>\n</figure>\n<p style=\"text-align: justify;\">Ngoài việc tuân thủ các yêu cầu về phòng trừ sâu bệnh theo quy trình, hướng dẫn của Học viện Nông nghiệp Việt Nam, căn cứ vào tình hình thực tế tại địa phương, những năm gần đây vợ chồng ông Ngọc và nhiều hộ trồng cam ở đây còn học hỏi kinh nghiệm của những người đi trước chế ra các chế phẩm sinh học để bón cho cây như ngâm ủ chuối chín với dung dịch Tricodema phun vào gốc để quả cam thơm và ngọt hơn, chế phẩm phân chuống ủ với vỏ lạc cho đất tơi xốp hơn và bọc bao cho trái, mắc màn cho cây để phòng trừ các loại côn trùng chích hút. Bởi nếu phun thuốc sẽ ảnh hưởng đến vệ sinh an toàn thực phẩm sản phẩm sẽ bị thị trường bài xích, khó tiêu thụ.</p>\n<p style=\"text-align: justify;\">Một nét đáng chú ý nữa ở trang trại ông Ngọc, bà Hường là ngoài việc làm giàu cho bản thân, ông bà còn tạo điều kiện làm việc cho nhiều người khác. Bà Hường cho biết, ông bà đã thuê 2 nhân công làm việc thường xuyên, vào các thời điểm bón phân, bọc quả và thu hoạch thuê thêm từ 5- 10 lao động khác với mức lương từ 250- 300 000 đồng/ ngày/ người.</p>\n<p style=\"text-align: justify;\">Bên cạnh việc đầu tư sản xuất, ông Ngọc và bà Hường cũng chăm lo cho gia đình. Họ có hai người con, một trai, một gái, và cả hai đều đã trưởng thành. Gia đình đã mua đất và xây nhà mới tại thị tứ Hạnh Lâm để nâng cao chất lượng cuộc sống.</p>\n<figure class=\"image \"><img src=\"https://dbndnghean.vn/dbndna-media/25/2/17/lam-giau-tren-que-huong-cach-mang--n4.jpg\" alt=\"\" width=\"1280\" height=\"812\">\n<figcaption>Vườn cam Hường- Ngọc trở thành điểm Chekin yêu thích của nhiều du khách</figcaption>\n</figure>\n<p style=\"text-align: justify;\">Từ kết quả sản xuất các loại cây ăn quả cho thu nhập cao và chăm lo cuộc sống gia đình những năm gần đây vợ chồng ông Ngọc- Bà Hường đã được nhiều người biết đến, liên tục được Hội Nông dân huyện xã công nhận là Hội viên sản xuất giỏi; được UBND huyện, xã tặng thưởng nhiều Giấy khen và công nhận là hộ gia đình tiêu biểu trong các phong trào thi đua. Gia đình văn hóa nhiều năm liền. Vườn cam của gia đình cũng được các đồng chí lãnh đạo UBND tỉnh, Huyện uy- UBND huyện đến thăm nhiều lần; được cán bộ, Nhân dân và du khách gần xa đến tham quan, học hỏi. Bà Nguyễn Thị Hường vừa được&nbsp; MTTQ Việt Nam huyện Thanh Chương suy tôn, chọn cử làm Ủy viên Ủy ban MTTQ huyện nhiệm kỳ 2024- 2029.</p>\n<figure class=\"image \"><img src=\"https://dbndnghean.vn/dbndna-media/25/2/17/lam-giau-tren-que-huong-cach-mang--n5.jpg\" alt=\"\" width=\"1276\" height=\"956\">\n<figcaption>Phân loại cam trước lúc chuyển đi các đại lý</figcaption>\n</figure>\n<p style=\"text-align: justify;\">Rời trang trại của ông Ngọc - bà Hường vào một buổi chiều giữa mùa đông, đi trên những triền đồi bát ngát cây xanh bất chợt tôi nhớ đến nhạc sỹ Văn Thế&nbsp; và&nbsp; một đoạn ca từ trong ca khúc “Nhớ Thanh Chương”: đất cũ năm xưa nay bát ngát cam chè. Nhạc sỹ giải thích: đất cũ là muốn nói đến đất cách mạng, còn bát ngát cam chè là nói về sự phát triển của Hạnh Lâm hôm nay. Vâng, Hạnh Lâm là đất cách mạng một trong 3 địa phương đầu tiên của huyện có Chi bộ Đảng (cùng Xuân Tường và Võ Liệt) và ngày 01/5/1930 Chi bộ đã lãnh đạo hàng ngàn nông dân vùng lên đốt phá đồn điền Ký Viễn, lấy gan vàng chọi đạn sắt suốt mấy ngày đêm ở Đình Làng Thượng, cùng với công nhân Trường Thi- Bến Thủy mở đầu đầu cho cao trào Xô viết Nghệ Tĩnh 1930- 1931…Chè Hạnh Lâm đã bắt đầu sinh sôi từ năm 1968 khi tỉnh mở Nông trường Hạnh Lâm, còn hôm nay gia đình ông Ngọc – bà Hường đang cùng các công nhân của nông trường, các đội viên của Tổng đội 2 (trước đây) và người dân Hạnh Lâm, Thanh Đức biến mảnh đất cách mạng nơi vùng cao biên giới thành một vùng đất năng động và giàu có.</p>                            </div>            \n            <div class=\"row mb-4 mt-4\">\n                <div class=\"social-actions col-md-7\">\n                    <span class=\"header\">Chia sẻ</span>\n                    <div class=\"social-share\">\n    <a class=\"item share-fb\" href=\"javascript:AppSocialShare.share('https://www.facebook.com/sharer/sharer.php?u=https://dbndnghean.vn/lam-giau-tren-que-huong-cach-mang-15358.htm');\"><i class=\"fab fa-facebook-square\"></i></a>\n    <a class=\"item share-twitter\" href=\"javascript:AppSocialShare.share('https://twitter.com/intent/tweet?text=L%C3%A0m+gi%C3%A0u+tr%C3%AAn+qu%C3%AA+h%C6%B0%C6%A1ng+c%C3%A1ch+m%E1%BA%A1ng&amp;url=https://dbndnghean.vn/lam-giau-tren-que-huong-cach-mang-15358.htm&amp;via=BrandExtract')\"><i class=\"fab fa-twitter\"></i></a>\n    <a class=\"item share-linkedin\" href=\"javascript:AppSocialShare.share('http://www.linkedin.com/shareArticle?mini=true&amp;url=https://dbndnghean.vn/lam-giau-tren-que-huong-cach-mang-15358.htm&amp;source=vkist.vietnampedia.com')\"><i class=\"fab fa-linkedin\"></i></a>\n    <a class=\"item email-detail\" href=\"mailto:?Subject=Làm giàu trên quê hương cách mạng&amp;Body=https://dbndnghean.vn/lam-giau-tren-que-huong-cach-mang-15358.htm\"><i class=\"fal fa-envelope\"></i></a>\n    <!--<a class=\"item print-detail\" href=\"javascript:void(0);\" onclick=\"window.print();return false;\"><i class=\"fal fa-print\"></i></a>-->\n    <!--<a class=\"item print-detail\" rel=\"nofollow\" href=\"https://dbndnghean.vn/lam-giau-tren-que-huong-cach-mang-15358.htm?print=print\"><i class=\"fal fa-print\"></i></a>-->\n</div>                </div>\n                <div class=\"author font-bold text-right col-md-5\">\n                                            <div class=\"author-name\">\n                            Trần Đình Hà                             <div class=\"small\">Trung tâm VH, TT&amp;TT Thanh Chương.</div>\n                        </div>\n                                        </div>\n            </div>\n                <div class=\"tags clearfix\">\n        <ul>\n            <li class=\"font-bold mr-2\">Từ khóa:</li>\n                                                <li><a href=\"https://dbndnghean.vn/hashtag/que-minh-xu-nghe-6\" class=\"tag-item\">Quê mình xứ Nghệ</a></li>\n                                                                        <li><a href=\"https://dbndnghean.vn/hashtag/non-nuoc-con-nguoi-xu-nghe-21\" class=\"tag-item\">Non nước, con người xứ Nghệ</a></li>\n                                            </ul>\n    </div>\n        </article>",
+      "image": "https://web-production-335ab.up.railway.app/uploads/838ab3c4-ee75-4386-bb32-a82bf5a647f7.jpg",
+      "category": "Sự kiện",
+      "author": "Admin Ngọc Hường",
+      "createdAt": "2026-01-04 03:53:23",
+      "updatedAt": "2026-01-04 03:57:16"
+    },
+    {
+      "id": "b211680f-7909-4899-bbf8-eeb3df07cf77",
+      "title": "Kỹ thuật trồng rau sạch tại nhà",
+      "summary": "Hướng dẫn chi tiết cách trồng rau sạch ngay tại nhà với chi phí thấp",
+      "content": "Nội dung chi tiết về kỹ thuật trồng rau sạch...",
+      "image": "/uploads/sample-news-1.jpg",
+      "category": "Kỹ thuật",
+      "author": "Ngọc Hường Farm",
+      "createdAt": "2026-01-04 12:35:01",
+      "updatedAt": "2026-01-04 12:35:01"
+    },
+    {
+      "id": "f9e0c817-8422-4f98-849c-a1f43e81850a",
+      "title": "Lợi ích của thực phẩm hữu cơ",
+      "summary": "Tại sao nên chọn thực phẩm hữu cơ cho sức khỏe gia đình",
+      "content": "Thực phẩm hữu cơ mang lại nhiều lợi ích...",
+      "image": "/uploads/sample-news-2.jpg",
+      "category": "Sức khỏe",
+      "author": "Ngọc Hường Farm",
+      "createdAt": "2026-01-04 12:35:01",
+      "updatedAt": "2026-01-04 12:35:01"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ORD-B0XPPH",
+      "customerInfo": {
+        "name": "nguyễn văn a",
+        "phone": "0985658557",
+        "email": "",
+        "address": "123123123",
+        "note": "aloalaoalo"
+      },
+      "items": [
+        {
+          "id": "P1767442021354",
+          "name": "Cam Bù",
+          "price": 35000,
+          "unit": "kg",
+          "category": "Trái cây",
+          "origin": "Thanh Chương, Nghệ An",
+          "harvestDate": "2026-01-03",
+          "certifications": [
+            "VietGAP"
+          ],
+          "images": [
+            "https://web-production-335ab.up.railway.app/uploads/5f761e71-f701-4802-b641-a272c3bebe48.jpg"
+          ],
+          "stock": 9999,
+          "description": "Cam bù là đặc sản truyền thống, quả to tròn, vỏ dày, màu vàng cam đậm, múi chắc và nhiều nước. Vị ngọt đậm pha chút chua nhẹ, hương thơm rõ, thường chín rộ vào dịp cuối năm và rất được ưa chuộng để ăn tươi, biếu tặng.",
+          "cultivationProcess": "",
+          "isFeatured": false,
+          "averageRating": 0,
+          "createdAt": "2026-01-03 12:07:01",
+          "updatedAt": "2026-01-03 12:07:01",
+          "quantity": 1
+        },
+        {
+          "id": "P1767441597626",
+          "name": "Mật Ong Hoa Cam",
+          "price": 350000,
+          "unit": "Lít",
+          "category": "Khác",
+          "origin": "Thanh Chương, Nghệ An",
+          "harvestDate": "2026-01-03",
+          "certifications": [
+            "VietGAP"
+          ],
+          "images": [
+            "https://web-production-335ab.up.railway.app/uploads/085ce611-7068-489b-a1a4-de7c52f445b3.jpg",
+            "https://web-production-335ab.up.railway.app/uploads/730b6732-a1e8-455d-a3e9-27aa36828e75.jpg",
+            "https://web-production-335ab.up.railway.app/uploads/addd5e21-719c-4ca4-88af-dccdf32731e1.jpg"
+          ],
+          "stock": 999,
+          "description": "Mật ong nuôi từ hoa cam có màu vàng óng, hương thơm dịu đặc trưng của hoa cam, vị ngọt thanh, dễ uống. Ong được nuôi trong vùng trồng cam tự nhiên nên mật giàu enzyme, vitamin và khoáng chất, tốt cho tiêu hóa, tăng đề kháng và bồi bổ sức khỏe.",
+          "cultivationProcess": "",
+          "isFeatured": false,
+          "averageRating": 0,
+          "createdAt": "2026-01-03 11:59:57",
+          "updatedAt": "2026-01-04 03:49:10",
+          "quantity": 2
+        },
+        {
+          "id": "P1767440905413",
+          "name": "Cam Vinh Loại 1",
+          "price": 60000,
+          "unit": "KG",
+          "category": "Trái cây",
+          "origin": "Thanh Chương, Nghệ An",
+          "harvestDate": "2026-01-03",
+          "certifications": [
+            "VietGAP"
+          ],
+          "images": [
+            "https://web-production-335ab.up.railway.app/uploads/82312ebf-fac5-4f97-b806-269fb2f7dbc9.jpg",
+            "https://web-production-335ab.up.railway.app/uploads/2574437e-26f5-44ba-9fc5-5ab54b2fe0fa.jpg"
+          ],
+          "stock": 9999,
+          "description": "Cam Vinh là đặc sản nổi tiếng của Nghệ An, được trồng theo phương pháp hữu cơ tốt cho sức khỏe. Quả tròn đều, vỏ mỏng, màu vàng cam đẹp, múi nhiều nước, vị ngọt thanh pha chút chua nhẹ, hương thơm tự nhiên và giàu vitamin C. Việc canh tác hữu cơ giúp trái không chứa dư lượng thuốc bảo vệ thực vật, an toàn cho người tiêu dùng và giữ được dinh dưỡng tự nhiên.",
+          "cultivationProcess": "",
+          "isFeatured": false,
+          "averageRating": 0,
+          "createdAt": "2026-01-03 11:48:25",
+          "updatedAt": "2026-01-03 11:48:25",
+          "quantity": 1
+        }
+      ],
+      "total": 795000,
+      "discountTotal": 0,
+      "finalTotal": 795000,
+      "couponCode": null,
+      "paymentMethod": "COD",
+      "status": "Shipped",
+      "createdAt": "2026-01-04 05:26:55",
+      "updatedAt": "2026-01-04 05:27:50",
+      "cookieId": "CUST-mjzaguwi-4492N24E4"
+    }
+  ],
+  "coupons": [
+    {
+      "id": "6f42cbff-d527-47f4-bc83-6a3965ddb434",
+      "code": "WELCOME10",
+      "discountType": "percentage",
+      "discountValue": 10,
+      "minOrderValue": 100000,
+      "expiryDate": "2024-12-31",
+      "isActive": true,
+      "createdAt": "2026-01-04 12:35:01",
+      "updatedAt": "2026-01-04 12:35:01"
+    },
+    {
+      "id": "61a935c8-e4d2-4935-bf2f-c32e230dc280",
+      "code": "FREESHIP",
+      "discountType": "fixed",
+      "discountValue": 30000,
+      "minOrderValue": 200000,
+      "expiryDate": "2024-12-31",
+      "isActive": true,
+      "createdAt": "2026-01-04 12:35:01",
+      "updatedAt": "2026-01-04 12:35:01"
+    }
+  ],
+  "reviews": []
+}
