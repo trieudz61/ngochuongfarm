@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "server": "cd server && npm start",
     "install:all": "npm install && cd server && npm install",
-    "start": "npm run build && npm run server",
+    "start": "cd server && npm start",
     "postinstall": "cd server && npm install",
     "deploy:hosting": "node deploy-to-hosting.js",
     "deploy:backend": "cd server && npm start",
