@@ -1,114 +1,134 @@
 {
-  "uploadDate": "2026-01-04T19:22:06.897Z",
+  "uploadDate": "2026-01-04T19:45:26.122Z",
   "successful": [
     {
       "originalName": "026c7a44-c057-4cff-8019-4d44ec2b680b.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/1cf3ff24-028f-4d97-9fd8-903f772b7fc5.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/afb8846e-bd8b-4747-88f6-a19a826c21bb.jpg",
       "success": true
     },
     {
       "originalName": "0a7d194d-1a16-409f-abe6-2388a12364a9.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/730b6732-a1e8-455d-a3e9-27aa36828e75.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/bb2b0ba1-b6bf-4677-9b08-6d01a521c675.jpg",
       "success": true
     },
     {
       "originalName": "15a1e2e0-6cba-4520-bbde-05e3a853cc12.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/2640c0ba-dfe7-47d5-a758-b9da78b954c7.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/3f6e67a4-faba-4e9f-ad84-61042b4a11c7.jpg",
+      "success": true
+    },
+    {
+      "originalName": "21919047-9ac6-4f01-af4a-2edc06238edf.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/f08823fb-b0eb-4881-b9e4-fa7b630bcda6.jpg",
       "success": true
     },
     {
       "originalName": "33ee83eb-c5a0-4133-b873-cc3c2453673e.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/55b70378-0203-44f3-9781-4a82913a0140.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/36ac2d66-f026-4701-b601-80cff931c924.jpg",
       "success": true
     },
     {
       "originalName": "4e3fdc2d-fc31-4577-a67e-1a93121831e5.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/085ce611-7068-489b-a1a4-de7c52f445b3.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/3a4abb97-475b-4442-b819-011833d73c34.jpg",
       "success": true
     },
     {
       "originalName": "7e244430-51b0-49c0-b7d6-f5d4992e5c21.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/addd5e21-719c-4ca4-88af-dccdf32731e1.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/7c67d64a-30da-4bc3-a883-acf494e3cea2.jpg",
       "success": true
     },
     {
       "originalName": "8271e839-b7ca-42b1-b8bc-c0ad66c2e3d6.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/82312ebf-fac5-4f97-b806-269fb2f7dbc9.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/8d923411-6cd4-404f-9509-226c009c43d6.jpg",
       "success": true
     },
     {
       "originalName": "832e1480-202a-4f94-b01c-152a34cbdae4.png",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/5f8b0e94-ed33-4cec-9457-91ca50c3f6b0.png",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/0bf9304b-c175-4c71-ac84-db48eb238ce1.png",
       "success": true
     },
     {
       "originalName": "85cb5748-5ab5-4d88-b532-ff93c1c4aaed.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/5f761e71-f701-4802-b641-a272c3bebe48.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/8175d931-d89c-4fd6-8698-038b1aa671a9.jpg",
       "success": true
     },
     {
       "originalName": "a8e0a1cb-25fc-4e38-8f09-c50c2acfa997.png",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/ca420ce1-b5b3-487c-86f5-2d47685a9ed5.png",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/09384fe7-8bda-4456-a6e1-591223e416d7.png",
       "success": true
     },
     {
       "originalName": "bd01bcff-223c-40a0-a6db-ff815082920e.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/838ab3c4-ee75-4386-bb32-a82bf5a647f7.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/416fc763-e791-4baf-94e4-7484ad1fcb16.jpg",
       "success": true
     },
     {
       "originalName": "c00138f5-b011-426f-9b1e-4e29c8613f5d.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/638add35-2e5f-47fe-b003-f454d62eb667.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/bdac11bf-5aac-4e9f-aeea-db1e7c6dc4aa.jpg",
       "success": true
     },
     {
       "originalName": "c05266a7-71ac-445a-b6ce-a91e6e7e968a.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/761884c2-6520-4a6e-abff-c678128ba729.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/48d0971f-7fb2-49aa-9c86-075037a23bb9.jpg",
       "success": true
     },
     {
       "originalName": "canhtac.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/58325cad-b83f-4532-baa8-c41c63fe14c3.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/479894bc-b381-4cd8-955a-d98068c2ea94.jpg",
       "success": true
     },
     {
       "originalName": "d1cc9c01-f6d2-46a9-80bd-08b1ab1fa12d.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/e5a253b0-d78f-4539-a14d-a6be8185271f.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/752f340f-a23f-46e2-8b5d-119f13d36440.jpg",
+      "success": true
+    },
+    {
+      "originalName": "dccbc190-1715-48ef-8c73-6283dc87a4d7.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/d8557222-c4b1-4bea-8cdc-a6bef3e78ee7.jpg",
+      "success": true
+    },
+    {
+      "originalName": "df90a507-c0a9-4e17-965f-f7e963f94ff3.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/9d927008-3cd7-4a8a-9403-4aabce77454e.jpg",
       "success": true
     },
     {
       "originalName": "donggoi.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/64bb018f-5e63-4e00-82cd-ac436c9b9bd4.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/f32d8647-c10b-449e-a1d5-5696d4a4920c.jpg",
+      "success": true
+    },
+    {
+      "originalName": "e1d4b657-f589-44cb-93fa-3b3768ae9d0a.png",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/e1be8f4d-24e7-4b88-8b17-ea0ac47072ad.png",
       "success": true
     },
     {
       "originalName": "e27baa41-b58f-4e5f-b36a-a1e8b6038e03.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/2574437e-26f5-44ba-9fc5-5ab54b2fe0fa.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/cda2d354-03d6-4c6a-b6d2-4d7527b24ab6.jpg",
       "success": true
     },
     {
       "originalName": "ef63c1a1-c8bc-4722-b8a7-4f2ccc26d23e.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/cfb97162-31a7-4ee1-918f-ef5ed1831ec5.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/1af94c55-e174-4295-8b28-f7294b440b96.jpg",
       "success": true
     },
     {
       "originalName": "haicam.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/ceef4c59-c4d7-4cb4-8eb8-0f258e93d190.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/09381953-51ad-4777-a841-6f8386f8fb82.jpg",
       "success": true
     },
     {
       "originalName": "haicam2.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/16c53c57-6051-49b5-b22c-22bbdca9f3b8.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/e6f95d6f-ebbe-4c2b-be16-366d08debc0e.jpg",
       "success": true
     },
     {
       "originalName": "tqc-certificate.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/3b401876-30cd-41d0-a15b-3dd98a1b5d48.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/515d18a5-ab9d-4bee-a2e5-4ce0bc5abde1.jpg",
       "success": true
     },
     {
       "originalName": "vuoncam.jpg",
-      "uploadedUrl": "http://web-production-335ab.up.railway.app/uploads/27e3b513-8597-40cb-b76a-5844f769ee54.jpg",
+      "uploadedUrl": "https://web-production-335ab.up.railway.app/uploads/71d124d2-cd20-44c6-88d1-3dd1e8531215.jpg",
       "success": true
     }
   ],

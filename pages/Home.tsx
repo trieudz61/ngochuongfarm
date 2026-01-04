@@ -206,7 +206,7 @@ const Home: React.FC = () => {
               >
                 {/* Ảnh chứng chỉ TQC thật từ server */}
                 <img 
-                  src={`${BACKEND_URL}/uploads/3b401876-30cd-41d0-a15b-3dd98a1b5d48.jpg`}
+                  src={`${BACKEND_URL}/uploads/515d18a5-ab9d-4bee-a2e5-4ce0bc5abde1.jpg`}
                   alt="TQC Certificate - TCVN 11041-2:2017" 
                   className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
                   onLoad={() => console.log('✅ TQC Certificate loaded successfully!')}
@@ -301,7 +301,7 @@ const Home: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <img 
-              src={`${BACKEND_URL}/uploads/3b401876-30cd-41d0-a15b-3dd98a1b5d48.jpg`}
+              src={`${BACKEND_URL}/uploads/515d18a5-ab9d-4bee-a2e5-4ce0bc5abde1.jpg`}
               alt="TQC Certificate - TCVN 11041-2:2017" 
               className="w-full h-full object-contain rounded-2xl shadow-2xl"
             />
