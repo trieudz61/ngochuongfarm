@@ -10,6 +10,20 @@ const { v4: uuidv4 } = require('uuid');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Base URL cho uploads - dùng biến môi trường hoặc auto-detect
+const getBaseUrl = (req) => {
+  // Ưu tiên biến môi trường (cho production)
+  if (process.env.BASE_URL) {
+    return process.env.BASE_URL;
+  }
+  // Railway auto-detect: RAILWAY_PUBLIC_DOMAIN hoặc RAILWAY_STATIC_URL
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+    return `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+  }
+  // Fallback: dùng request headers (cho local dev)
+  return `${req.protocol}://${req.get('host')}`;
+};
+
 // Serve static files từ dist folder (production build)
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist')));
@@ -188,7 +202,7 @@ function initializeDatabase() {
           console.error('Error checking orders table structure:', err);
           return;
         }
-        
+
         const hasCookieId = columns && columns.some(col => col.name === 'cookieId');
         if (!hasCookieId) {
           console.log('[Migration] Adding cookieId column to orders table...');
@@ -285,10 +299,10 @@ app.post('/api/products', (req, res) => {
   db.run(
     `INSERT INTO products (id, name, price, unit, category, origin, harvestDate, certifications, images, stock, description, cultivationProcess, isFeatured, averageRating)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [product.id, product.name, product.price, product.unit, product.category, product.origin, 
-     product.harvestDate, product.certifications, product.images, product.stock, 
-     product.description, product.cultivationProcess, product.isFeatured, product.averageRating || 0],
-    function(err) {
+    [product.id, product.name, product.price, product.unit, product.category, product.origin,
+    product.harvestDate, product.certifications, product.images, product.stock,
+    product.description, product.cultivationProcess, product.isFeatured, product.averageRating || 0],
+    function (err) {
       if (err) {
         res.status(500).json(formatResponse(false, null, err.message));
       } else {
@@ -311,9 +325,9 @@ app.put('/api/products/:id', (req, res) => {
      certifications = ?, images = ?, stock = ?, description = ?, cultivationProcess = ?, isFeatured = ?,
      averageRating = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?`,
     [product.name, product.price, product.unit, product.category, product.origin, product.harvestDate,
-     product.certifications, product.images, product.stock, product.description, product.cultivationProcess,
-     product.isFeatured, product.averageRating || 0, req.params.id],
-    function(err) {
+    product.certifications, product.images, product.stock, product.description, product.cultivationProcess,
+    product.isFeatured, product.averageRating || 0, req.params.id],
+    function (err) {
       if (err) {
         res.status(500).json(formatResponse(false, null, err.message));
       } else {
@@ -324,7 +338,7 @@ app.put('/api/products/:id', (req, res) => {
 });
 
 app.delete('/api/products/:id', (req, res) => {
-  db.run('DELETE FROM products WHERE id = ?', [req.params.id], function(err) {
+  db.run('DELETE FROM products WHERE id = ?', [req.params.id], function (err) {
     if (err) {
       res.status(500).json(formatResponse(false, null, err.message));
     } else {
@@ -339,7 +353,8 @@ app.post('/api/products/upload-image', uploadImage.single('image'), uploadErrorH
       return res.status(400).json(formatResponse(false, null, 'No file uploaded'));
     }
     const imageUrl = `/uploads/${req.file.filename}`;
-    const fullUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
+    const baseUrl = getBaseUrl(req);
+    const fullUrl = `${baseUrl}${imageUrl}`;
     console.log(`[Upload] File saved: ${req.file.filename}, URL: ${fullUrl}`);
     res.json(formatResponse(true, { url: fullUrl, imageUrl: fullUrl }));
   } catch (error) {
@@ -381,7 +396,7 @@ app.post('/api/news', (req, res) => {
     `INSERT INTO news (id, title, summary, content, image, category, author)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [article.id, article.title, article.summary, article.content, article.image, article.category, article.author],
-    function(err) {
+    function (err) {
       if (err) {
         res.status(500).json(formatResponse(false, null, err.message));
       } else {
@@ -396,7 +411,7 @@ app.put('/api/news/:id', (req, res) => {
     `UPDATE news SET title = ?, summary = ?, content = ?, image = ?, category = ?, author = ?,
      updatedAt = CURRENT_TIMESTAMP WHERE id = ?`,
     [req.body.title, req.body.summary, req.body.content, req.body.image, req.body.category, req.body.author, req.params.id],
-    function(err) {
+    function (err) {
       if (err) {
         res.status(500).json(formatResponse(false, null, err.message));
       } else {
@@ -407,7 +422,7 @@ app.put('/api/news/:id', (req, res) => {
 });
 
 app.delete('/api/news/:id', (req, res) => {
-  db.run('DELETE FROM news WHERE id = ?', [req.params.id], function(err) {
+  db.run('DELETE FROM news WHERE id = ?', [req.params.id], function (err) {
     if (err) {
       res.status(500).json(formatResponse(false, null, err.message));
     } else {
@@ -422,7 +437,8 @@ app.post('/api/news/upload-image', uploadImage.single('image'), uploadErrorHandl
       return res.status(400).json(formatResponse(false, null, 'No file uploaded'));
     }
     const imageUrl = `/uploads/${req.file.filename}`;
-    const fullUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
+    const baseUrl = getBaseUrl(req);
+    const fullUrl = `${baseUrl}${imageUrl}`;
     console.log(`[Upload] File saved: ${req.file.filename}, URL: ${fullUrl}`);
     res.json(formatResponse(true, { url: fullUrl, imageUrl: fullUrl }));
   } catch (error) {
@@ -438,7 +454,8 @@ app.post('/api/news/upload-video', upload.single('video'), uploadErrorHandler, (
       return res.status(400).json(formatResponse(false, null, 'No file uploaded'));
     }
     const videoUrl = `/uploads/${req.file.filename}`;
-    const fullUrl = `${req.protocol}://${req.get('host')}${videoUrl}`;
+    const baseUrl = getBaseUrl(req);
+    const fullUrl = `${baseUrl}${videoUrl}`;
     console.log(`[Upload] Video saved: ${req.file.filename}, URL: ${fullUrl}`);
     res.json(formatResponse(true, { url: fullUrl, videoUrl: fullUrl }));
   } catch (error) {
@@ -468,7 +485,7 @@ app.get('/api/orders', (req, res) => {
 app.get('/api/orders/cookie/:cookieId', (req, res) => {
   const { cookieId } = req.params;
   console.log(`[API] Fetching orders for cookieId: ${cookieId}`);
-  
+
   db.all('SELECT * FROM orders WHERE cookieId = ? ORDER BY createdAt DESC', [cookieId], (err, rows) => {
     if (err) {
       console.error('[API] Error fetching orders by cookieId:', err);
@@ -515,9 +532,9 @@ app.post('/api/orders', (req, res) => {
   db.run(
     `INSERT INTO orders (id, customerInfo, items, total, discountTotal, finalTotal, couponCode, paymentMethod, status, cookieId)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [order.id, order.customerInfo, order.items, order.total, order.discountTotal, 
-     order.finalTotal, order.couponCode, order.paymentMethod, order.status, order.cookieId],
-    function(err) {
+    [order.id, order.customerInfo, order.items, order.total, order.discountTotal,
+    order.finalTotal, order.couponCode, order.paymentMethod, order.status, order.cookieId],
+    function (err) {
       if (err) {
         res.status(500).json(formatResponse(false, null, err.message));
       } else {
@@ -537,7 +554,7 @@ app.patch('/api/orders/:id/status', (req, res) => {
   db.run(
     'UPDATE orders SET status = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
     [req.body.status, req.params.id],
-    function(err) {
+    function (err) {
       if (err) {
         res.status(500).json(formatResponse(false, null, err.message));
       } else {
@@ -548,7 +565,7 @@ app.patch('/api/orders/:id/status', (req, res) => {
 });
 
 app.delete('/api/orders/:id', (req, res) => {
-  db.run('DELETE FROM orders WHERE id = ?', [req.params.id], function(err) {
+  db.run('DELETE FROM orders WHERE id = ?', [req.params.id], function (err) {
     if (err) {
       res.status(500).json(formatResponse(false, null, err.message));
     } else if (this.changes === 0) {
@@ -567,16 +584,16 @@ app.delete('/api/orders/admin/clear-all', (req, res) => {
   if (adminSecret !== 'ngochuongfarm2024') {
     return res.status(403).json(formatResponse(false, null, 'Unauthorized: Invalid admin secret'));
   }
-  
-  db.run('DELETE FROM orders', function(err) {
+
+  db.run('DELETE FROM orders', function (err) {
     if (err) {
       res.status(500).json(formatResponse(false, null, err.message));
     } else {
       console.log(`[API] ⚠️ CLEARED ALL ORDERS - Deleted ${this.changes} orders from database`);
-      res.json(formatResponse(true, { 
-        deleted: true, 
+      res.json(formatResponse(true, {
+        deleted: true,
         count: this.changes,
-        message: `Successfully deleted ${this.changes} orders` 
+        message: `Successfully deleted ${this.changes} orders`
       }));
     }
   });
@@ -625,9 +642,9 @@ app.post('/api/coupons', (req, res) => {
   db.run(
     `INSERT INTO coupons (id, code, discountType, discountValue, minOrderValue, expiryDate, isActive)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [coupon.id, coupon.code, coupon.discountType, coupon.discountValue, 
-     coupon.minOrderValue, coupon.expiryDate, coupon.isActive],
-    function(err) {
+    [coupon.id, coupon.code, coupon.discountType, coupon.discountValue,
+    coupon.minOrderValue, coupon.expiryDate, coupon.isActive],
+    function (err) {
       if (err) {
         res.status(500).json(formatResponse(false, null, err.message));
       } else {
@@ -647,8 +664,8 @@ app.put('/api/coupons/:id', (req, res) => {
     `UPDATE coupons SET code = ?, discountType = ?, discountValue = ?, minOrderValue = ?,
      expiryDate = ?, isActive = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?`,
     [coupon.code, coupon.discountType, coupon.discountValue, coupon.minOrderValue,
-     coupon.expiryDate, coupon.isActive, req.params.id],
-    function(err) {
+    coupon.expiryDate, coupon.isActive, req.params.id],
+    function (err) {
       if (err) {
         res.status(500).json(formatResponse(false, null, err.message));
       } else {
@@ -659,7 +676,7 @@ app.put('/api/coupons/:id', (req, res) => {
 });
 
 app.delete('/api/coupons/:id', (req, res) => {
-  db.run('DELETE FROM coupons WHERE id = ?', [req.params.id], function(err) {
+  db.run('DELETE FROM coupons WHERE id = ?', [req.params.id], function (err) {
     if (err) {
       res.status(500).json(formatResponse(false, null, err.message));
     } else {
@@ -698,7 +715,7 @@ app.post('/api/products/:id/reviews', (req, res) => {
     `INSERT INTO reviews (id, productId, userName, rating, comment, isVerified)
      VALUES (?, ?, ?, ?, ?, ?)`,
     [review.id, review.productId, review.userName, review.rating, review.comment, review.isVerified ? 1 : 0],
-    function(err) {
+    function (err) {
       if (err) {
         res.status(500).json(formatResponse(false, null, err.message));
       } else {
@@ -741,7 +758,7 @@ app.post('/api/seed-data', (req, res) => {
   }
 
   console.log('🌱 Seeding sample data...');
-  
+
   // Sample products
   const sampleProducts = [
     {
@@ -855,7 +872,7 @@ app.post('/api/seed-data', (req, res) => {
         product.origin, product.harvestDate, product.certifications, product.images,
         product.stock, product.description, product.cultivationProcess,
         product.isFeatured, product.averageRating
-      ], function(err) {
+      ], function (err) {
         if (err) console.error('Error inserting product:', err);
         completed++;
         if (completed === total) {
@@ -880,7 +897,7 @@ app.post('/api/seed-data', (req, res) => {
       newsStmt.run([
         article.id, article.title, article.summary, article.content,
         article.image, article.category, article.author
-      ], function(err) {
+      ], function (err) {
         if (err) console.error('Error inserting news:', err);
         completed++;
         if (completed === total) {
@@ -905,7 +922,7 @@ app.post('/api/seed-data', (req, res) => {
       couponStmt.run([
         coupon.id, coupon.code, coupon.discountType, coupon.discountValue,
         coupon.minOrderValue, coupon.expiryDate, coupon.isActive
-      ], function(err) {
+      ], function (err) {
         if (err) console.error('Error inserting coupon:', err);
         completed++;
         if (completed === total) {

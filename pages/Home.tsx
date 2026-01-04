@@ -204,9 +204,9 @@ const Home: React.FC = () => {
                 className="aspect-square rounded-[3rem] md:rounded-[5rem] overflow-hidden border-8 border-green-100 shadow-2xl relative group bg-white cursor-pointer"
                 onClick={() => setShowCertificateModal(true)}
               >
-                {/* Ảnh chứng chỉ TQC Full - không padding, full viền */}
+                {/* Ảnh chứng chỉ TQC thật từ server/uploads */}
                 <img 
-                  src="http://web-production-335ab.up.railway.app/uploads/f2def99d-494f-46ce-abfc-140e2c1146e9.jpg"
+                  src={`${getApiUrl()}/uploads/tqc-certificate.jpg`}
                   alt="TQC Certificate - TCVN 11041-2:2017" 
                   className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
                   onLoad={() => console.log('✅ TQC Certificate loaded successfully!')}
@@ -301,7 +301,7 @@ const Home: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <img 
-              src="http://web-production-335ab.up.railway.app/uploads/f2def99d-494f-46ce-abfc-140e2c1146e9.jpg"
+              src={`${getApiUrl()}/uploads/tqc-certificate.jpg`}
               alt="TQC Certificate - TCVN 11041-2:2017" 
               className="w-full h-full object-contain rounded-2xl shadow-2xl"
             />
