@@ -1,0 +1,284 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Ngọc Hường Farm - Nông Sản Sạch Tươi Ngon</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#ea580c">
+    <meta name="theme-color" content="#ea580c">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      body { 
+        font-family: 'Inter', sans-serif; 
+        touch-action: manipulation;
+        -webkit-text-size-adjust: 100%;
+      }
+      input, select, textarea, [contenteditable] { font-size: 16px !important; }
+      * { -webkit-tap-highlight-color: transparent; }
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: #f1f1f1; }
+      ::-webkit-scrollbar-thumb { background: #fb923c; border-radius: 10px; }
+      ::-webkit-scrollbar-thumb:hover { background: #ea580c; }
+      
+      /* HTML Content Styles */
+      .html-content h1 {
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: #111827;
+        margin: 2rem 0 1rem 0;
+        line-height: 1.2;
+        border-bottom: 3px solid #ea580c;
+        padding-bottom: 0.5rem;
+      }
+      
+      .html-content h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #111827;
+        margin: 2rem 0 1rem 0;
+        line-height: 1.3;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      
+      .html-content h2::before {
+        content: '';
+        width: 8px;
+        height: 2rem;
+        background: #ea580c;
+        border-radius: 4px;
+      }
+      
+      .html-content h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #374151;
+        margin: 1.5rem 0 0.75rem 0;
+        line-height: 1.4;
+      }
+      
+      .html-content p {
+        font-size: 1.125rem;
+        line-height: 1.8;
+        color: #4b5563;
+        margin: 1rem 0;
+        font-weight: 500;
+      }
+      
+      .html-content strong {
+        font-weight: 900;
+        color: #111827;
+      }
+      
+      .html-content em {
+        font-style: italic;
+        color: #9a3412;
+      }
+      
+      .html-content u {
+        text-decoration: underline;
+        text-decoration-color: #ea580c;
+        text-decoration-thickness: 2px;
+      }
+      
+      .html-content mark {
+        background: linear-gradient(120deg, #fed7aa 0%, #fdba74 100%);
+        padding: 0.125rem 0.25rem;
+        border-radius: 0.25rem;
+        color: #9a3412;
+        font-weight: 600;
+      }
+      
+      .html-content blockquote {
+        border-left: 4px solid #ea580c;
+        padding: 1.5rem 2rem;
+        margin: 2rem 0;
+        background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+        border-radius: 0 1rem 1rem 0;
+        font-style: italic;
+        color: #9a3412;
+        font-weight: 600;
+        font-size: 1.25rem;
+        line-height: 1.6;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+      
+      .html-content ul, .html-content ol {
+        margin: 1.5rem 0;
+        padding-left: 2rem;
+      }
+      
+      .html-content li {
+        margin: 0.5rem 0;
+        font-size: 1.125rem;
+        line-height: 1.7;
+        color: #4b5563;
+        font-weight: 500;
+      }
+      
+      .html-content ul li {
+        list-style-type: none;
+        position: relative;
+      }
+      
+      .html-content ul li::before {
+        content: '🌱';
+        position: absolute;
+        left: -1.5rem;
+        top: 0;
+      }
+      
+      .html-content ol li {
+        list-style-type: decimal;
+        list-style-position: outside;
+        color: #ea580c;
+        font-weight: 700;
+      }
+      
+      .html-content ol li::marker {
+        color: #ea580c;
+        font-weight: 900;
+      }
+      
+      .html-content a {
+        color: #ea580c;
+        text-decoration: underline;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 2px;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      
+      .html-content a:hover {
+        color: #c2410c;
+        text-decoration-thickness: 3px;
+      }
+      
+      .html-content img {
+        width: 100%;
+        border-radius: 1.5rem;
+        margin: 2rem 0;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border: 4px solid white;
+      }
+      
+      .html-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 2rem 0;
+        background: white;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      }
+      
+      .html-content th {
+        background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+        color: white;
+        font-weight: 900;
+        padding: 1rem;
+        text-align: left;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      
+      .html-content td {
+        padding: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        font-weight: 500;
+        color: #4b5563;
+      }
+      
+      .html-content tr:nth-child(even) {
+        background: #f9fafb;
+      }
+      
+      .html-content tr:hover {
+        background: #fef3c7;
+      }
+      
+      .html-content hr {
+        border: none;
+        height: 3px;
+        background: linear-gradient(to right, #ea580c, transparent);
+        margin: 3rem 0;
+        border-radius: 2px;
+      }
+      
+      .html-content code {
+        background: #f3f4f6;
+        color: #111827;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        font-family: 'Monaco', 'Consolas', monospace;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+      
+      .html-content pre {
+        background: #1f2937;
+        color: #e5e7eb;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin: 2rem 0;
+        overflow-x: auto;
+        font-family: 'Monaco', 'Consolas', monospace;
+        line-height: 1.6;
+      }
+      
+      .html-content pre code {
+        background: none;
+        color: inherit;
+        padding: 0;
+        border-radius: 0;
+      }
+      
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .html-content h1 { font-size: 2rem; }
+        .html-content h2 { font-size: 1.5rem; }
+        .html-content h3 { font-size: 1.25rem; }
+        .html-content p { font-size: 1rem; }
+        .html-content blockquote { 
+          padding: 1rem 1.5rem; 
+          font-size: 1.125rem; 
+        }
+        .html-content li { font-size: 1rem; }
+        .html-content th, .html-content td { 
+          padding: 0.75rem 0.5rem; 
+          font-size: 0.875rem; 
+        }
+      }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react-dom": "https://esm.sh/react-dom@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client",
+    "@reduxjs/toolkit": "https://esm.sh/@reduxjs/toolkit@^2.11.2",
+    "react-redux": "https://esm.sh/react-redux@^9.2.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0"
+  }
+}
+</script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-gray-50">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

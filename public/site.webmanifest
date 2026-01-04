@@ -1,0 +1,16 @@
+{
+  "name": "Ngọc Hường Farm",
+  "short_name": "NH Farm",
+  "description": "Nông Sản Sạch Tươi Ngon",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#ea580c",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}
