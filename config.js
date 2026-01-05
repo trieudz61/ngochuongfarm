@@ -2,15 +2,20 @@
 // CẤU HÌNH TẬP TRUNG - CHỈ CẦN THAY ĐỔI Ở ĐÂY
 // ============================================
 
-// Auto-detect backend URL based on environment
-const isProduction = typeof window !== 'undefined' && 
-  !window.location.hostname.includes('localhost') && 
-  !window.location.hostname.includes('127.0.0.1');
+// Detect environment at runtime
+const getBackendUrl = () => {
+  if (typeof window === 'undefined') return 'http://localhost:3001';
+  
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:3001';
+  }
+  // Production: API is on same origin
+  return '';
+};
 
 // URL Backend API
-export const BACKEND_URL = isProduction 
-  ? '' // Production: same origin (Render serves both frontend & backend)
-  : 'http://localhost:3001'; // Development: local server
+export const BACKEND_URL = getBackendUrl();
 
 // API endpoint
 export const API_URL = `${BACKEND_URL}/api`;
