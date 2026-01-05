@@ -12,10 +12,7 @@
     "server": "cd server && npm start",
     "install:all": "npm install && cd server && npm install",
     "start": "node server/server.js",
-    "postinstall": "npm install --prefix server",
-    "deploy:hosting": "node deploy-to-hosting.js",
-    "deploy:backend": "cd server && npm start",
-    "update:api": "node update-api-url.js"
+    "postinstall": "npm install --prefix server"
   },
   "dependencies": {
     "@google/genai": "^1.34.0",
