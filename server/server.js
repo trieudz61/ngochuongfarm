@@ -64,8 +64,13 @@ const getBaseUrl = (req) => {
 };
 
 // Serve static files từ dist folder (production build)
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../dist')));
+const distPath = path.join(__dirname, '../dist');
+console.log(`📁 Looking for dist at: ${distPath}`);
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  console.log('✅ Serving static files from dist');
+} else {
+  console.log('⚠️ dist folder not found, frontend will not be served');
 }
 
 // Middleware
@@ -733,11 +738,14 @@ app.post('/api/admin/change-password', async (req, res) => {
 });
 
 // Serve frontend trong production
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
-  });
-}
+app.get('*', (req, res) => {
+  const indexPath = path.join(__dirname, '../dist/index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send('Frontend not built. Run npm run build first.');
+  }
+});
 
 // Start server
 app.listen(PORT, () => {
