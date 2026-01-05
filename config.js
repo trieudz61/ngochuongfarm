@@ -2,8 +2,15 @@
 // CẤU HÌNH TẬP TRUNG - CHỈ CẦN THAY ĐỔI Ở ĐÂY
 // ============================================
 
-// URL Backend API - localhost cho development
-export const BACKEND_URL = 'http://localhost:3001';
+// Auto-detect backend URL based on environment
+const isProduction = typeof window !== 'undefined' && 
+  !window.location.hostname.includes('localhost') && 
+  !window.location.hostname.includes('127.0.0.1');
+
+// URL Backend API
+export const BACKEND_URL = isProduction 
+  ? '' // Production: same origin (Render serves both frontend & backend)
+  : 'http://localhost:3001'; // Development: local server
 
 // API endpoint
 export const API_URL = `${BACKEND_URL}/api`;
