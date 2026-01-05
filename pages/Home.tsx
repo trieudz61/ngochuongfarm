@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { BACKEND_URL } from '../config.js';
@@ -22,6 +22,66 @@ import {
 } from 'lucide-react';
 import { RootState } from '../store';
 import ProductCard from '../components/ProductCard';
+
+// Hook để detect khi element vào viewport
+const useScrollAnimation = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, isVisible };
+};
+
+// Component wrapper cho animation
+const AnimatedSection: React.FC<{
+  children: React.ReactNode;
+  direction?: 'left' | 'right' | 'up' | 'fade';
+  delay?: number;
+  className?: string;
+}> = ({ children, direction = 'up', delay = 0, className = '' }) => {
+  const { ref, isVisible } = useScrollAnimation();
+  
+  const getAnimationClass = () => {
+    const base = 'transition-all duration-700 ease-out';
+    if (!isVisible) {
+      switch (direction) {
+        case 'left': return `${base} opacity-0 -translate-x-16`;
+        case 'right': return `${base} opacity-0 translate-x-16`;
+        case 'up': return `${base} opacity-0 translate-y-10`;
+        case 'fade': return `${base} opacity-0`;
+        default: return `${base} opacity-0`;
+      }
+    }
+    return `${base} opacity-100 translate-x-0 translate-y-0`;
+  };
+
+  return (
+    <div 
+      ref={ref} 
+      className={`${getAnimationClass()} ${className}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+};
 
 const Home: React.FC = () => {
   const products = useSelector((state: RootState) => state.app.products);
@@ -58,7 +118,7 @@ const Home: React.FC = () => {
       <section className="relative bg-orange-600 min-h-[600px] md:h-[850px] flex items-center overflow-hidden py-12 md:py-0">
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" 
+            src="https://i.ibb.co/Y7c1dK7s/unnamed.jpg" 
             alt="Field background"
             className="w-full h-full object-cover opacity-30 scale-105 animate-[subtle-zoom_20s_infinite_alternate]"
           />
@@ -97,14 +157,16 @@ const Home: React.FC = () => {
       <section className="py-16 md:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 md:mb-20 gap-6">
-            <div className="max-w-xl">
+            <AnimatedSection direction="left" className="max-w-xl">
               <span className="text-orange-600 font-black uppercase tracking-[0.3em] text-[10px] md:text-xs mb-3 block">Mùa nào thức nấy</span>
               <h2 className="text-2xl md:text-5xl font-black text-gray-900 mb-4 uppercase tracking-tight">Sản Phẩm Đang Vào Vụ</h2>
               <p className="text-gray-500 font-medium text-sm md:text-base">Tuyển chọn những loại quả đạt độ chín và hương vị tốt nhất trong ngày hôm nay tại nông trại.</p>
-            </div>
-            <Link to="/products" className="group bg-gray-900 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl font-black flex items-center gap-3 hover:bg-orange-600 transition-all uppercase tracking-widest text-[10px] md:text-xs">
-              Tất cả sản phẩm <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
-            </Link>
+            </AnimatedSection>
+            <AnimatedSection direction="right">
+              <Link to="/products" className="group bg-gray-900 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl font-black flex items-center gap-3 hover:bg-orange-600 transition-all uppercase tracking-widest text-[10px] md:text-xs">
+                Tất cả sản phẩm <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+              </Link>
+            </AnimatedSection>
           </div>
           {isLoading ? (
             <div className="text-center py-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
@@ -116,8 +178,14 @@ const Home: React.FC = () => {
             </div>
           ) : displayProducts.length > 0 ? (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 md:gap-8">
-              {displayProducts.map(product => (
-                <ProductCard key={product.id} product={product} />
+              {displayProducts.map((product, index) => (
+                <AnimatedSection 
+                  key={product.id} 
+                  direction={index % 2 === 0 ? 'left' : 'right'} 
+                  delay={index * 100}
+                >
+                  <ProductCard product={product} />
+                </AnimatedSection>
               ))}
             </div>
           ) : (
@@ -145,13 +213,15 @@ const Home: React.FC = () => {
               { icon: Truck, title: 'Giao Siêu Tốc', desc: 'Trong vòng 2h' },
               { icon: Sprout, title: 'Giá Tại Vườn', desc: 'Không qua trung gian' }
             ].map((f, i) => (
-              <div key={i} className="flex flex-col items-center text-center group">
-                <div className="bg-white p-5 rounded-2xl mb-4 shadow-sm group-hover:shadow-md group-hover:-translate-y-1 transition-all border border-gray-100">
-                  <f.icon className="w-6 h-6 md:w-8 text-orange-600" />
+              <AnimatedSection key={i} direction={i < 2 ? 'left' : 'right'} delay={i * 100}>
+                <div className="flex flex-col items-center text-center group">
+                  <div className="bg-white p-5 rounded-2xl mb-4 shadow-sm group-hover:shadow-md group-hover:-translate-y-1 transition-all border border-gray-100">
+                    <f.icon className="w-6 h-6 md:w-8 text-orange-600" />
+                  </div>
+                  <h3 className="text-sm md:text-lg font-black text-gray-900 mb-1 uppercase tracking-tight">{f.title}</h3>
+                  <p className="text-[10px] md:text-xs text-gray-400 font-bold uppercase tracking-widest">{f.desc}</p>
                 </div>
-                <h3 className="text-sm md:text-lg font-black text-gray-900 mb-1 uppercase tracking-tight">{f.title}</h3>
-                <p className="text-[10px] md:text-xs text-gray-400 font-bold uppercase tracking-widest">{f.desc}</p>
-              </div>
+              </AnimatedSection>
             ))}
           </div>
         </div>
@@ -164,7 +234,7 @@ const Home: React.FC = () => {
         
         <div className="max-w-7xl mx-auto px-4 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-24 items-center">
-            <div>
+            <AnimatedSection direction="left">
               <span className="inline-block px-4 py-1.5 rounded-full bg-orange-600/20 border border-orange-600/30 text-orange-400 font-black uppercase tracking-[0.3em] text-[10px] mb-6">
                 Traceability - Truy xuất nguồn gốc
               </span>
@@ -197,16 +267,16 @@ const Home: React.FC = () => {
               <Link to="/trace" className="inline-flex items-center gap-4 bg-orange-600 hover:bg-orange-500 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl transition-all active:scale-95 group">
                 Khám phá quy trình chi tiết <ChevronRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
               </Link>
-            </div>
+            </AnimatedSection>
 
-            <div className="relative">
+            <AnimatedSection direction="right" delay={200}>
               <div 
                 className="aspect-square rounded-[3rem] md:rounded-[5rem] overflow-hidden border-8 border-green-100 shadow-2xl relative group bg-white cursor-pointer"
                 onClick={() => setShowCertificateModal(true)}
               >
                 {/* Ảnh chứng chỉ TQC thật từ server */}
                 <img 
-                  src={`${BACKEND_URL}/uploads/515d18a5-ab9d-4bee-a2e5-4ce0bc5abde1.jpg`}
+                  src="http://i.ibb.co/JfjTj4t/tqc-certificate.jpg"
                   alt="TQC Certificate - TCVN 11041-2:2017" 
                   className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
                   onLoad={() => console.log('✅ TQC Certificate loaded successfully!')}
@@ -252,7 +322,7 @@ const Home: React.FC = () => {
                  <div className="text-4xl md:text-6xl font-black leading-none mb-1">0%</div>
                  <div className="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-60">Dư lượng hóa chất</div>
               </div>
-            </div>
+            </AnimatedSection>
           </div>
         </div>
       </section>
@@ -260,6 +330,7 @@ const Home: React.FC = () => {
       {/* Bottom CTA */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-5xl mx-auto px-4">
+          <AnimatedSection direction="up">
            <div className="bg-orange-600 rounded-[3rem] md:rounded-[4rem] p-10 md:p-20 text-center text-white relative overflow-hidden shadow-3xl">
               <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -ml-32 -mt-32 blur-3xl"></div>
               <div className="relative z-10">
@@ -277,6 +348,7 @@ const Home: React.FC = () => {
                 </div>
               </div>
            </div>
+          </AnimatedSection>
         </div>
       </section>
       
@@ -301,7 +373,7 @@ const Home: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <img 
-              src={`${BACKEND_URL}/uploads/515d18a5-ab9d-4bee-a2e5-4ce0bc5abde1.jpg`}
+              src="http://i.ibb.co/JfjTj4t/tqc-certificate.jpg"
               alt="TQC Certificate - TCVN 11041-2:2017" 
               className="w-full h-full object-contain rounded-2xl shadow-2xl"
             />

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch, createNews, updateNewsArticle, deleteNews, newsAPI } from '../store';
+import { RootState, AppDispatch, createNews, updateNewsArticle, deleteNews } from '../store';
 import { 
   Plus, Edit2, Trash2, Search, X, Check, 
   Newspaper, Image as ImageIcon, Video, 
@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { NewsArticle } from '../types';
 import { ContentRenderer } from '../components/ContentRenderer';
-import { saveImageToStorage, saveBase64ToStorage } from '../utils/imageStorage';
 import AdminLayout from '../components/AdminLayout';
 
 const AdminNews: React.FC = () => {
@@ -88,6 +87,39 @@ const AdminNews: React.FC = () => {
     insertText(element + '\n');
   };
 
+  // Hàm nén ảnh trước khi convert sang base64
+  const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.7): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          const base64 = canvas.toDataURL('image/jpeg', quality);
+          resolve(base64);
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleCoverImageUpload = async (file: File | null) => {
     if (!file) return;
     
@@ -102,24 +134,12 @@ const AdminNews: React.FC = () => {
     }
 
     try {
-      // Upload lên server
-      const imageUrl = await newsAPI.uploadImage(file);
-      setFormData({ ...formData, image: imageUrl });
+      // Nén và convert sang base64
+      const base64String = await compressImage(file, 800, 0.7);
+      setFormData({ ...formData, image: base64String });
     } catch (error: any) {
       console.error('Upload error:', error);
-      // Fallback: lưu vào IndexedDB nếu server không available
-      if (error.message === 'BACKEND_OFFLINE') {
-        try {
-          const blobUrl = await saveImageToStorage(file);
-          setFormData({ ...formData, image: blobUrl });
-          alert('Backend chưa chạy. Ảnh đã được lưu cục bộ. Vui lòng start backend để upload lên server.');
-        } catch (fallbackError) {
-          alert('Lỗi khi tải ảnh lên. Vui lòng kiểm tra backend server hoặc thử lại.');
-          console.error(fallbackError);
-        }
-      } else {
-        alert(`Lỗi upload: ${error.message || 'Vui lòng thử lại'}`);
-      }
+      alert('Lỗi khi tải ảnh lên. Vui lòng thử lại.');
     }
   };
 
@@ -137,24 +157,12 @@ const AdminNews: React.FC = () => {
     }
 
     try {
-      // Upload lên server
-      const imageUrl = await newsAPI.uploadImage(file);
-      insertText(`[img]${imageUrl}[/img]\n\n`);
+      // Nén và convert sang base64
+      const base64String = await compressImage(file, 800, 0.7);
+      insertText(`[img]${base64String}[/img]\n\n`);
     } catch (error: any) {
       console.error('Upload error:', error);
-      // Fallback: lưu vào IndexedDB
-      if (error.message === 'BACKEND_OFFLINE') {
-        try {
-          const blobUrl = await saveImageToStorage(file);
-          insertText(`[img]${blobUrl}[/img]\n\n`);
-          alert('Backend chưa chạy. Ảnh đã được lưu cục bộ.');
-        } catch (fallbackError) {
-          alert('Lỗi khi tải ảnh lên. Vui lòng kiểm tra backend server.');
-          console.error(fallbackError);
-        }
-      } else {
-        alert(`Lỗi upload: ${error.message || 'Vui lòng thử lại'}`);
-      }
+      alert('Lỗi khi tải ảnh lên. Vui lòng thử lại.');
     }
   };
 
@@ -414,21 +422,7 @@ const AdminNews: React.FC = () => {
                           required 
                           className="w-full bg-gray-50 border-2 border-transparent focus:border-orange-500 focus:bg-white p-4 rounded-2xl outline-none transition-all font-bold pr-32" 
                           value={formData.image} 
-                          onChange={async (e) => {
-                            const value = e.target.value;
-                            // Nếu là base64, tự động convert sang blob URL
-                            if (value.startsWith('data:image/')) {
-                              try {
-                                const blobUrl = await saveBase64ToStorage(value);
-                                setFormData({...formData, image: blobUrl});
-                              } catch (error) {
-                                console.error('Error converting base64:', error);
-                                setFormData({...formData, image: value});
-                              }
-                            } else {
-                              setFormData({...formData, image: value});
-                            }
-                          }} 
+                          onChange={(e) => setFormData({...formData, image: e.target.value})} 
                           placeholder="Nhập URL hoặc upload ảnh..." 
                         />
                         <input

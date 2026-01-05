@@ -193,6 +193,17 @@ const OrderDetailsModal = ({ order, isOpen, onClose, onUpdateStatus, onDeleteOrd
 
 type SortField = 'id' | 'createdAt' | 'customerName' | 'finalTotal' | 'status' | null;
 type SortDirection = 'asc' | 'desc' | null;
+type StatusFilter = 'all' | Order['status'];
+
+const STATUS_TABS: { value: StatusFilter; label: string; icon: React.ReactNode }[] = [
+  { value: 'all', label: 'Tất cả', icon: <ShoppingBag className="w-3.5 h-3.5" /> },
+  { value: 'Pending', label: 'Chờ xử lý', icon: <Clock className="w-3.5 h-3.5" /> },
+  { value: 'Processing', label: 'Đang xử lý', icon: <Clock className="w-3.5 h-3.5" /> },
+  { value: 'Paid', label: 'Đã thanh toán', icon: <CreditCard className="w-3.5 h-3.5" /> },
+  { value: 'Shipped', label: 'Đang giao', icon: <Truck className="w-3.5 h-3.5" /> },
+  { value: 'Delivered', label: 'Hoàn thành', icon: <CheckCircle className="w-3.5 h-3.5" /> },
+  { value: 'Cancelled', label: 'Đã hủy', icon: <XCircle className="w-3.5 h-3.5" /> },
+];
 
 const AdminOrders: React.FC = () => {
   const orders = useSelector((state: RootState) => state.app.orders);
@@ -203,6 +214,7 @@ const AdminOrders: React.FC = () => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [sortField, setSortField] = useState<SortField>('createdAt');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   // Fetch ALL orders khi component mount (admin cần thấy tất cả đơn)
   useEffect(() => {
@@ -210,33 +222,50 @@ const AdminOrders: React.FC = () => {
     dispatch(fetchOrders(null)); // null = fetch all orders (admin mode)
   }, [dispatch]);
 
-  // Filter orders với hỗ trợ tiếng Việt
-  const filteredOrders = useMemo(() => {
-    if (!search.trim()) return orders;
-    
-    return orders.filter(o => {
-      // Search trong mã đơn hàng
-      if (vietnameseSearch(o.id, search)) return true;
-      
-      // Search trong tên khách hàng
-      if (vietnameseSearch(o.customerInfo.name, search)) return true;
-      
-      // Search trong số điện thoại
-      if (o.customerInfo.phone.includes(search)) return true;
-      
-      // Search trong địa chỉ
-      if (o.customerInfo.address && vietnameseSearch(o.customerInfo.address, search)) return true;
-      
-      // Search trong email
-      if (o.customerInfo.email && vietnameseSearch(o.customerInfo.email, search)) return true;
-      
-      // Search trong trạng thái (tiếng Việt)
-      const statusVietnamese = getStatusTranslation(o.status);
-      if (vietnameseSearch(statusVietnamese, search)) return true;
-      
-      return false;
+  // Đếm số đơn theo từng trạng thái
+  const statusCounts = useMemo(() => {
+    const counts: Record<StatusFilter, number> = {
+      all: orders.length,
+      Pending: 0,
+      Processing: 0,
+      Paid: 0,
+      Shipped: 0,
+      Delivered: 0,
+      Cancelled: 0,
+    };
+    orders.forEach(o => {
+      if (counts[o.status] !== undefined) {
+        counts[o.status]++;
+      }
     });
-  }, [orders, search]);
+    return counts;
+  }, [orders]);
+
+  // Filter orders với hỗ trợ tiếng Việt và theo trạng thái
+  const filteredOrders = useMemo(() => {
+    let result = orders;
+    
+    // Lọc theo trạng thái
+    if (statusFilter !== 'all') {
+      result = result.filter(o => o.status === statusFilter);
+    }
+    
+    // Lọc theo search
+    if (search.trim()) {
+      result = result.filter(o => {
+        if (vietnameseSearch(o.id, search)) return true;
+        if (vietnameseSearch(o.customerInfo.name, search)) return true;
+        if (o.customerInfo.phone.includes(search)) return true;
+        if (o.customerInfo.address && vietnameseSearch(o.customerInfo.address, search)) return true;
+        if (o.customerInfo.email && vietnameseSearch(o.customerInfo.email, search)) return true;
+        const statusVietnamese = getStatusTranslation(o.status);
+        if (vietnameseSearch(statusVietnamese, search)) return true;
+        return false;
+      });
+    }
+    
+    return result;
+  }, [orders, search, statusFilter]);
 
   // Sort orders (mặc định: mới nhất trước)
   const sortedOrders = useMemo(() => {
@@ -364,7 +393,7 @@ const AdminOrders: React.FC = () => {
       title="Quản Lý Đơn Hàng" 
       subtitle={`Xử lý ${orders.length} đơn hàng đã nhận từ khách hàng.`}
     >
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-6">
         <div className="flex-1">
           {/* Title is now handled by AdminLayout */}
         </div>
@@ -377,6 +406,35 @@ const AdminOrders: React.FC = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+        </div>
+      </div>
+
+      {/* Status Filter Tabs */}
+      <div className="mb-6 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="flex gap-2 min-w-max">
+          {STATUS_TABS.map(tab => {
+            const count = statusCounts[tab.value];
+            const isActive = statusFilter === tab.value;
+            return (
+              <button
+                key={tab.value}
+                onClick={() => setStatusFilter(tab.value)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${
+                  isActive
+                    ? 'bg-orange-600 text-white shadow-lg shadow-orange-200'
+                    : 'bg-white text-gray-500 border border-gray-100 hover:border-orange-200 hover:text-orange-600'
+                }`}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+                <span className={`px-1.5 py-0.5 rounded-md text-[9px] ${
+                  isActive ? 'bg-white/20' : 'bg-gray-100'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

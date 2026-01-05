@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -35,6 +35,7 @@ import { CustomerInfo, PaymentMethod, Coupon, Order } from '../types';
 import { filterOrdersByCookie, loadUserOrders, saveUserOrders } from '../utils/userOrders';
 import { getCookieId } from '../utils/cookieManager';
 import { saveCustomerInfo, loadCustomerInfo } from '../utils/customerInfo';
+import { getStatusTranslation, getStatusColor } from '../utils/orderStatus';
 
 // Modal Cảm ơn sau khi đặt hàng thành công
 interface SuccessModalProps {
@@ -105,7 +106,7 @@ const BankTransferModal: React.FC<BankModalProps> = ({ isOpen, onConfirm, onCanc
   if (!isOpen) return null;
 
   const accountNumber = "0987936737";
-  const transferContent = `THANH TOAN ${orderId || 'DONHANG'}`;
+  const transferContent = `${orderId || 'DONHANG'}`;
 
   const handleCopy = (text: string, field: 'account' | 'content') => {
     navigator.clipboard.writeText(text);
@@ -123,6 +124,17 @@ const BankTransferModal: React.FC<BankModalProps> = ({ isOpen, onConfirm, onCanc
         <h2 className="text-xl font-black uppercase mb-4 text-gray-900">Thanh toán chuyển khoản</h2>
         
         <div className="bg-gray-50 p-4 rounded-2xl mb-5 space-y-3 text-left border border-gray-100">
+          {/* MB Bank Logo */}
+          <div className="flex items-center justify-center py-2 mb-2">
+            <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
+              <img 
+                src="https://upload.wikimedia.org/wikipedia/commons/2/25/Logo_MB_new.png" 
+                alt="MB Bank" 
+                className="h-8 object-contain"
+              />
+            </div>
+          </div>
+          
           <div className="flex justify-between items-center border-b border-gray-200 pb-2">
             <span className="text-[9px] font-black uppercase text-gray-400 tracking-widest">Ngân hàng</span>
             <span className="font-black text-gray-900 text-sm">MB BANK</span>
@@ -131,7 +143,7 @@ const BankTransferModal: React.FC<BankModalProps> = ({ isOpen, onConfirm, onCanc
           <div className="flex justify-between items-center border-b border-gray-200 pb-2">
             <span className="text-[9px] font-black uppercase text-gray-400 tracking-widest">Số tài khoản</span>
             <div className="flex items-center gap-2">
-              <span className="font-black text-gray-900 text-base tracking-tight">0987.936.737</span>
+              <span className="font-black text-gray-900 text-base tracking-tight">8185678999</span>
               <button 
                 onClick={() => handleCopy(accountNumber, 'account')}
                 className={`p-1.5 rounded-lg transition-all ${copiedField === 'account' ? 'bg-emerald-100 text-emerald-600' : 'bg-white text-orange-600 hover:bg-orange-100 border border-orange-100'}`}
@@ -144,7 +156,7 @@ const BankTransferModal: React.FC<BankModalProps> = ({ isOpen, onConfirm, onCanc
           
           <div className="flex justify-between items-center border-b border-gray-200 pb-2">
             <span className="text-[9px] font-black uppercase text-gray-400 tracking-widest">Chủ tài khoản</span>
-            <span className="font-black text-gray-900 uppercase text-[10px] text-right max-w-[60%] leading-tight">NGUYEN THI NGOC HUONG</span>
+            <span className="font-black text-gray-900 uppercase text-[10px] text-right max-w-[60%] leading-tight">NGUYEN THI HUONG</span>
           </div>
           
           <div className="pt-2">
@@ -252,6 +264,7 @@ const Cart: React.FC = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [couponError, setCouponError] = useState('');
   const [currentOrderId, setCurrentOrderId] = useState('');
+  const [formErrors, setFormErrors] = useState<{name?: string; phone?: string; address?: string}>({});
 
   // Load thông tin khách hàng đã lưu khi component mount
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>(() => {
@@ -291,6 +304,19 @@ const Cart: React.FC = () => {
     }
   }, [cookieId, user?.email]);
 
+  // Tự động fetch orders để đồng bộ với admin (mỗi 30 giây)
+  useEffect(() => {
+    // Fetch ngay khi mount
+    dispatch(fetchOrders(cookieId));
+    
+    // Refresh định kỳ để sync trạng thái từ admin
+    const interval = setInterval(() => {
+      dispatch(fetchOrders(cookieId));
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [dispatch, cookieId]);
+
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
   let discount = 0;
   if (appliedCoupon) {
@@ -323,11 +349,52 @@ const Cart: React.FC = () => {
     }
   };
 
+  // Validate form và chuyển bước
+  const handleNextStep = () => {
+    // Nếu đang ở bước 2, validate trước khi sang bước 3
+    if (step === 2) {
+      const errors: {name?: string; phone?: string; address?: string} = {};
+      if (!customerInfo.name?.trim()) {
+        errors.name = 'Vui lòng nhập họ tên';
+      }
+      if (!customerInfo.phone?.trim()) {
+        errors.phone = 'Vui lòng nhập số điện thoại';
+      }
+      if (!customerInfo.address?.trim()) {
+        errors.address = 'Vui lòng nhập địa chỉ giao hàng';
+      }
+      
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors);
+        return;
+      }
+      setFormErrors({});
+    }
+    
+    setStep((step + 1) as 1 | 2 | 3);
+  };
+
   const handleFinalCheckout = async () => {
-    if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
+    // Validate required fields
+    const errors: {name?: string; phone?: string; address?: string} = {};
+    if (!customerInfo.name?.trim()) {
+      errors.name = 'Vui lòng nhập họ tên';
+    }
+    if (!customerInfo.phone?.trim()) {
+      errors.phone = 'Vui lòng nhập số điện thoại';
+    }
+    if (!customerInfo.address?.trim()) {
+      errors.address = 'Vui lòng nhập địa chỉ giao hàng';
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       setStep(2);
       return;
     }
+    
+    // Clear errors if validation passed
+    setFormErrors({});
     // Tạo orderId một lần duy nhất
     const orderId = 'ORD-' + Math.random().toString(36).substr(2, 6).toUpperCase();
     setCurrentOrderId(orderId);
@@ -365,6 +432,8 @@ const Cart: React.FC = () => {
     } else {
       try {
         await dispatch(createOrder(newOrder)).unwrap();
+        // Xóa giỏ hàng sau khi đặt hàng thành công
+        dispatch(clearCart());
         setIsSuccessModalOpen(true);
       } catch (error: any) {
         // Nếu backend offline, vẫn lưu order vào localStorage để giữ lịch sử (theo user)
@@ -443,6 +512,8 @@ const Cart: React.FC = () => {
 
     try {
       await dispatch(createOrder(newOrder)).unwrap();
+      // Xóa giỏ hàng sau khi đặt hàng thành công
+      dispatch(clearCart());
       setIsBankModalOpen(false);
       setIsSuccessModalOpen(true);
     } catch (error: any) {
@@ -637,7 +708,9 @@ const Cart: React.FC = () => {
                   <p className="text-[9px] font-black text-orange-600 uppercase tracking-widest mb-1">{order.id}</p>
                   <p className="text-[10px] text-gray-400 font-bold">{new Date(order.createdAt).toLocaleDateString('vi-VN')}</p>
                 </div>
-                <span className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase">{order.status}</span>
+                <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase border ${getStatusColor(order.status)}`}>
+                  {getStatusTranslation(order.status)}
+                </span>
               </div>
               <div className="flex -space-x-3 mb-6">
                 {order.items.slice(0, 3).map((item, idx) => (
@@ -796,12 +869,13 @@ const Cart: React.FC = () => {
                     </div>
                   </div>
                 ))}
-                
-                {renderRecentOrders()}
 
                 <div className="lg:hidden mt-6">
                    {renderCouponUI()}
                 </div>
+                
+                {/* Đơn hàng đã mua - hiển thị cuối cùng trên mobile */}
+                {renderRecentOrders()}
               </div>
             )}
 
@@ -833,11 +907,21 @@ const Cart: React.FC = () => {
                         Họ tên người nhận *
                       </label>
                       <input 
-                        className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-orange-500 focus:bg-white transition-all duration-300 hover:bg-gray-100" 
+                        className={`w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold border-2 transition-all duration-300 hover:bg-gray-100 ${formErrors.name ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-transparent focus:border-orange-500 focus:bg-white'}`}
                         value={customerInfo.name} 
-                        onChange={e => setCustomerInfo({...customerInfo, name: e.target.value})} 
-                        placeholder="Nhập họ tên đầy đủ" 
+                        onChange={e => {
+                          setCustomerInfo({...customerInfo, name: e.target.value});
+                          if (formErrors.name) setFormErrors({...formErrors, name: undefined});
+                        }} 
+                        placeholder="Nhập họ tên đầy đủ"
+                        required
                       />
+                      {formErrors.name && (
+                        <p className="text-xs text-red-500 font-bold flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {formErrors.name}
+                        </p>
+                      )}
                     </div>
                     
                     {/* Phone field */}
@@ -847,12 +931,22 @@ const Cart: React.FC = () => {
                         Số điện thoại *
                       </label>
                       <input 
-                        className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-orange-500 focus:bg-white transition-all duration-300 hover:bg-gray-100" 
+                        className={`w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold border-2 transition-all duration-300 hover:bg-gray-100 ${formErrors.phone ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-transparent focus:border-orange-500 focus:bg-white'}`}
                         value={customerInfo.phone} 
-                        onChange={e => setCustomerInfo({...customerInfo, phone: e.target.value})} 
+                        onChange={e => {
+                          setCustomerInfo({...customerInfo, phone: e.target.value});
+                          if (formErrors.phone) setFormErrors({...formErrors, phone: undefined});
+                        }} 
                         placeholder="Số điện thoại liên hệ" 
                         type="tel"
+                        required
                       />
+                      {formErrors.phone && (
+                        <p className="text-xs text-red-500 font-bold flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {formErrors.phone}
+                        </p>
+                      )}
                     </div>
                     
                     {/* Address field */}
@@ -862,11 +956,21 @@ const Cart: React.FC = () => {
                         Địa chỉ giao hàng *
                       </label>
                       <input 
-                        className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-orange-500 focus:bg-white transition-all duration-300 hover:bg-gray-100" 
+                        className={`w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold border-2 transition-all duration-300 hover:bg-gray-100 ${formErrors.address ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-transparent focus:border-orange-500 focus:bg-white'}`}
                         value={customerInfo.address} 
-                        onChange={e => setCustomerInfo({...customerInfo, address: e.target.value})} 
-                        placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố" 
+                        onChange={e => {
+                          setCustomerInfo({...customerInfo, address: e.target.value});
+                          if (formErrors.address) setFormErrors({...formErrors, address: undefined});
+                        }} 
+                        placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
+                        required
                       />
+                      {formErrors.address && (
+                        <p className="text-xs text-red-500 font-bold flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {formErrors.address}
+                        </p>
+                      )}
                     </div>
                     
                     {/* Email field */}
@@ -1039,19 +1143,23 @@ const Cart: React.FC = () => {
                       </div>
                       
                       {/* Icon with enhanced styling */}
-                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 ${
+                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 overflow-hidden ${
                         paymentMethod === 'BankTransfer' 
-                          ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200' 
-                          : 'bg-gray-50 text-gray-400 group-hover:bg-gray-100'
+                          ? 'bg-white shadow-lg shadow-blue-200 border-2 border-blue-100' 
+                          : 'bg-gray-50 group-hover:bg-white border border-gray-100'
                       }`}>
-                        <CreditCard className="w-8 h-8" />
+                        <img 
+                          src="https://upload.wikimedia.org/wikipedia/commons/2/25/Logo_MB_new.png" 
+                          alt="MB Bank" 
+                          className="w-12 h-12 object-contain"
+                        />
                       </div>
                       
                       {/* Content */}
                       <div className="space-y-3">
-                        <h3 className="font-black text-gray-900 uppercase text-lg">Chuyển khoản</h3>
+                        <h3 className="font-black text-gray-900 uppercase text-lg">MB Bank</h3>
                         <p className="text-sm text-gray-500 font-medium leading-relaxed">
-                          Chuyển khoản ngân hàng. Xử lý nhanh chóng và an toàn.
+                          Chuyển khoản ngân hàng MB Bank. Xử lý nhanh chóng.
                         </p>
                         <div className="flex items-center gap-2 text-[10px] font-black text-blue-600 uppercase tracking-wider">
                           <ShieldCheck className="w-3 h-3" />
@@ -1200,7 +1308,7 @@ const Cart: React.FC = () => {
                 
                 {/* Enhanced CTA button */}
                 <button 
-                  onClick={step === 3 ? handleFinalCheckout : () => setStep((step + 1) as any)} 
+                  onClick={step === 3 ? handleFinalCheckout : handleNextStep} 
                   className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-orange-200 hover:shadow-2xl hover:shadow-orange-300 transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] relative overflow-hidden group"
                 >
                   {/* Button background animation */}
@@ -1271,7 +1379,7 @@ const Cart: React.FC = () => {
             
             {/* Enhanced CTA button */}
             <button 
-              onClick={step === 3 ? handleFinalCheckout : () => setStep((step + 1) as any)}
+              onClick={step === 3 ? handleFinalCheckout : handleNextStep}
               className="flex-grow bg-gradient-to-r from-orange-600 to-orange-700 text-white h-16 px-6 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] relative overflow-hidden group"
             >
               {/* Button background animation */}

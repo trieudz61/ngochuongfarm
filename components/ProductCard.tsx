@@ -78,12 +78,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </Link>
         
         <p className="text-[9px] sm:text-[11px] text-gray-400 mb-3 line-clamp-1 font-medium">{product.origin}</p>
-        {product.harvestDate && (
-          <p className="text-[8px] sm:text-[10px] text-emerald-600 mb-2 font-bold uppercase tracking-wider flex items-center gap-1">
-            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-            Hái {new Date(product.harvestDate).toLocaleDateString('vi-VN')}
-          </p>
-        )}
+        <p className="text-[8px] sm:text-[10px] text-emerald-600 mb-2 font-bold uppercase tracking-wider flex items-center gap-1">
+          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+          Hái {new Date().toLocaleDateString('vi-VN')}
+        </p>
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-auto gap-2">
           {/* Price - Refined font size */}

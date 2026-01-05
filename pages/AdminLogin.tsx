@@ -3,11 +3,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { Sprout, AlertCircle } from 'lucide-react';
 import { RootState, login } from '../store';
+import { adminAuthAPI } from '../utils/api';
 
 const AdminLogin: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,25 +28,31 @@ const AdminLogin: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Kiểm tra tài khoản admin
-      // Tạm thời dùng hardcoded, sau có thể tích hợp với backend
-      if (email.trim() === 'admin') {
-        if (password === '123') {
-          dispatch(login({ 
-            id: 'admin-1', 
-            name: 'Quản Trị Viên', 
-            email: 'admin', 
-            role: 'admin' 
-          }));
-          navigate('/admin', { replace: true });
-        } else {
-          setError('Mật khẩu không chính xác!');
+      // Gọi API login admin
+      const response = await adminAuthAPI.login(username.trim(), password);
+      
+      if (response && response.user) {
+        // Lưu token vào localStorage
+        if (response.token) {
+          localStorage.setItem('adminToken', response.token);
         }
+        
+        dispatch(login({ 
+          id: response.user.id, 
+          name: response.user.name, 
+          email: response.user.username, 
+          role: 'admin' 
+        }));
+        navigate('/admin', { replace: true });
       } else {
-        setError('Tài khoản admin không hợp lệ!');
+        setError('Đăng nhập thất bại. Vui lòng thử lại.');
       }
     } catch (err: any) {
-      setError(err.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
+      if (err.message === 'BACKEND_OFFLINE') {
+        setError('Không thể kết nối đến server. Vui lòng thử lại sau.');
+      } else {
+        setError(err.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -77,8 +84,8 @@ const AdminLogin: React.FC = () => {
               required 
               className="w-full bg-gray-50 p-4 rounded-xl outline-none font-bold border-2 border-transparent focus:border-orange-500 transition-all text-gray-900" 
               placeholder="Nhập tài khoản admin" 
-              value={email} 
-              onChange={e => setEmail(e.target.value)}
+              value={username} 
+              onChange={e => setUsername(e.target.value)}
               disabled={isLoading}
               autoFocus
             />

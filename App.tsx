@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { ShoppingCart, User as UserIcon, Sprout, Phone, Facebook, MessageCircle, ArrowUp, X, MapPin, Mail, Clock, ChevronRight, History, AlertCircle, Menu } from 'lucide-react';
 import { RootState, login, logout } from './store';
@@ -83,13 +83,35 @@ const ScrollToTopButton = () => {
   );
 };
 
-// 3. Nút giỏ hàng nổi (Floating Cart Button)
+// 3. Nút giỏ hàng nổi (Floating Cart Button) - Draggable như AssistiveTouch
 const CartFloatingButton = () => {
   const cart = useSelector((state: RootState) => state.app.cart);
   const location = useLocation();
-  const [isVisible, setIsVisible] = useState(false);
+  const navigate = useNavigate();
   const [isPulse, setIsPulse] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isFadingOut, setIsFadingOut] = useState(false);
+  const isFirstRender = useRef(true);
+  const prevTotalItems = useRef<number>(0);
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Draggable state
+  const [position, setPosition] = useState(() => {
+    // Load vị trí từ localStorage nếu có
+    const saved = localStorage.getItem('cartButtonPosition');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { x: window.innerWidth - 70, y: window.innerHeight - 200 };
+      }
+    }
+    return { x: window.innerWidth - 70, y: window.innerHeight - 200 };
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [hasMoved, setHasMoved] = useState(false);
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const buttonRef = useRef<HTMLDivElement>(null);
   
   const totalItems = useMemo(() => 
     cart.reduce((sum, item) => sum + item.quantity, 0),
@@ -101,46 +123,213 @@ const CartFloatingButton = () => {
     [cart]
   );
   
+  // Hàm ẩn tooltip với hiệu ứng fade out
+  const hideTooltipWithFade = () => {
+    setIsFadingOut(true);
+    setTimeout(() => {
+      setShowTooltip(false);
+      setIsFadingOut(false);
+    }, 300);
+  };
+  
+  // Hàm hiện tooltip và tự động ẩn sau 2s
+  const showTooltipWithAutoHide = () => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+    }
+    setIsFadingOut(false);
+    setShowTooltip(true);
+    hideTimeoutRef.current = setTimeout(() => {
+      hideTooltipWithFade();
+    }, 2000);
+  };
+  
+  // Snap to edge (như AssistiveTouch)
+  const snapToEdge = (x: number, y: number) => {
+    const buttonSize = 56;
+    const padding = 16;
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
+    // Snap to left or right edge
+    const snapX = x < screenWidth / 2 ? padding : screenWidth - buttonSize - padding;
+    
+    // Giới hạn Y trong màn hình
+    const minY = 80; // Dưới navbar
+    const maxY = screenHeight - buttonSize - padding;
+    const snapY = Math.max(minY, Math.min(y, maxY));
+    
+    const newPos = { x: snapX, y: snapY };
+    setPosition(newPos);
+    localStorage.setItem('cartButtonPosition', JSON.stringify(newPos));
+  };
+  
+  // Touch/Mouse handlers
+  const handleDragStart = (clientX: number, clientY: number) => {
+    setIsDragging(true);
+    setHasMoved(false);
+    dragStartPos.current = { x: clientX - position.x, y: clientY - position.y };
+  };
+  
+  const handleDragMove = (clientX: number, clientY: number) => {
+    if (!isDragging) return;
+    
+    const newX = clientX - dragStartPos.current.x;
+    const newY = clientY - dragStartPos.current.y;
+    
+    // Check if moved significantly
+    if (Math.abs(newX - position.x) > 5 || Math.abs(newY - position.y) > 5) {
+      setHasMoved(true);
+    }
+    
+    setPosition({ x: newX, y: newY });
+  };
+  
+  const handleDragEnd = () => {
+    if (isDragging) {
+      snapToEdge(position.x, position.y);
+      setIsDragging(false);
+    }
+  };
+  
+  // Mouse events
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    handleDragStart(e.clientX, e.clientY);
+  };
+  
+  // Touch events
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    handleDragStart(touch.clientX, touch.clientY);
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    handleDragMove(touch.clientX, touch.clientY);
+  };
+  
+  // Global mouse/touch move and end
   useEffect(() => {
-    const toggleVisibility = () => setIsVisible(window.pageYOffset > 300);
-    window.addEventListener('scroll', toggleVisibility);
-    return () => window.removeEventListener('scroll', toggleVisibility);
+    const handleMouseMove = (e: MouseEvent) => handleDragMove(e.clientX, e.clientY);
+    const handleMouseUp = () => handleDragEnd();
+    const handleTouchEndGlobal = () => handleDragEnd();
+    
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('touchend', handleTouchEndGlobal);
+    }
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchend', handleTouchEndGlobal);
+    };
+  }, [isDragging, position]);
+  
+  // Reset khi chuyển trang
+  useEffect(() => {
+    prevTotalItems.current = totalItems;
+    setShowTooltip(false);
+    setIsFadingOut(false);
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+    }
+  }, [location.pathname]);
+  
+  // Hiệu ứng pulse và tự động hiển thị tooltip 2s khi THÊM sản phẩm
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      prevTotalItems.current = totalItems;
+      return;
+    }
+    
+    if (totalItems > prevTotalItems.current && totalItems > 0) {
+      setIsPulse(true);
+      showTooltipWithAutoHide();
+      
+      const pulseTimer = setTimeout(() => setIsPulse(false), 1000);
+      prevTotalItems.current = totalItems;
+      
+      return () => {
+        clearTimeout(pulseTimer);
+      };
+    }
+    
+    prevTotalItems.current = totalItems;
+  }, [totalItems]);
+  
+  // Cleanup timeout khi unmount
+  useEffect(() => {
+    return () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+    };
   }, []);
   
-  // Hiệu ứng pulse khi thêm sản phẩm
-  useEffect(() => {
-    if (totalItems > 0) {
-      setIsPulse(true);
-      const timer = setTimeout(() => setIsPulse(false), 1000);
-      return () => clearTimeout(timer);
+  // Xử lý click: chỉ khi không drag
+  const handleClick = (e: React.MouseEvent) => {
+    if (hasMoved) {
+      e.preventDefault();
+      return;
     }
-  }, [totalItems]);
+    
+    if (!showTooltip) {
+      e.preventDefault();
+      showTooltipWithAutoHide();
+    }
+  };
   
   // Ẩn nút khi đang ở trang giỏ hàng
   const isCartPage = location.pathname === '/cart';
   
-  if (!isVisible || totalItems === 0 || isCartPage) return null;
+  if (isCartPage) return null;
+  
+  // Tính vị trí tooltip dựa trên vị trí button
+  const isOnLeft = position.x < window.innerWidth / 2;
   
   return (
-    <div className="fixed bottom-48 sm:bottom-24 right-6 z-[100]">
+    <div 
+      ref={buttonRef}
+      className="fixed z-[100] touch-none select-none"
+      style={{ 
+        left: position.x, 
+        top: position.y,
+        transition: isDragging ? 'none' : 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+      }}
+    >
       <Link 
         to="/cart"
-        className={`relative w-14 h-14 flex items-center justify-center bg-green-600/90 backdrop-blur-md text-white rounded-full shadow-xl border-2 border-white/30 hover:bg-green-600 hover:-translate-y-1 transition-all active:scale-95 group ${isPulse ? 'animate-bounce' : ''}`}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
+        onClick={handleClick}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        className={`relative w-14 h-14 flex items-center justify-center bg-green-600/50 backdrop-blur-md text-white rounded-full shadow-xl border-2 border-white/20 transition-all active:scale-95 group ${isPulse ? 'animate-bounce' : ''} ${totalItems === 0 ? 'opacity-40' : 'opacity-70 hover:opacity-100'} ${isDragging ? 'scale-110 opacity-100 cursor-grabbing' : 'cursor-grab hover:bg-green-600/90'}`}
         title="Giỏ hàng"
+        draggable={false}
       >
-        <ShoppingCart className="w-6 h-6 group-hover:scale-110 transition-transform" />
+        <ShoppingCart className="w-6 h-6 group-hover:scale-110 transition-transform pointer-events-none" />
         
         {/* Badge số lượng */}
-        <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-black rounded-full w-7 h-7 flex items-center justify-center shadow-lg border-2 border-white animate-in zoom-in-50 duration-200">
-          {totalItems > 99 ? '99+' : totalItems}
-        </span>
+        {totalItems > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-black rounded-full w-7 h-7 flex items-center justify-center shadow-lg border-2 border-white animate-in zoom-in-50 duration-200 pointer-events-none">
+            {totalItems > 99 ? '99+' : totalItems}
+          </span>
+        )}
       </Link>
       
-      {/* Tooltip chi tiết */}
+      {/* Tooltip chi tiết - vị trí động theo button */}
       {showTooltip && (
-        <div className="absolute bottom-0 right-16 bg-white rounded-2xl shadow-2xl p-4 border border-gray-100 animate-in fade-in slide-in-from-right-4 duration-200 min-w-[200px]">
+        <div 
+          className={`absolute bg-white rounded-2xl shadow-2xl p-4 border border-gray-100 min-w-[200px] transition-all duration-300 ${isFadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100 animate-in fade-in zoom-in-95'}`}
+          style={{
+            bottom: 0,
+            [isOnLeft ? 'left' : 'right']: 60,
+          }}
+        >
           <div className="text-sm font-black text-gray-900 mb-2 uppercase tracking-tight">Giỏ hàng của bạn</div>
           <div className="space-y-1">
             <div className="flex justify-between items-center text-xs">
@@ -153,7 +342,7 @@ const CartFloatingButton = () => {
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100">
-            <div className="text-[10px] text-gray-400 font-medium text-center">Click để xem chi tiết</div>
+            <div className="text-[10px] text-gray-400 font-medium text-center">Nhấn lần nữa để xem giỏ hàng</div>
           </div>
         </div>
       )}

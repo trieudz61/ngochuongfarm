@@ -8,7 +8,7 @@ const PRODUCTION_STEPS = [
     id: 1,
     title: 'Lựa Chọn Vùng Trồng & Giống Cam',
     description: 'Tại Hạnh Lâm (Thanh Chương), chúng tôi chọn những triền đồi đất đỏ bazan có độ thoát nước tốt nhất. Giống cam Xã Đoài lòng vàng được tuyển chọn kỹ lưỡng, đảm bảo khả năng chống chịu sâu bệnh tự nhiên và cho chất lượng quả ngọt thanh.',
-    image: 'http://localhost:3000/server/uploads/vuoncam.jpg',
+    image: 'https://i.ibb.co/SXncdLyh/vuoncam.jpg',
     icon: Sprout,
     color: 'bg-emerald-500',
     details: ['Đất đỏ bazan độ pH 5.5-6.5', 'Giống F1 thuần chủng', 'Quy hoạch vùng đệm an toàn']
@@ -17,7 +17,7 @@ const PRODUCTION_STEPS = [
     id: 2,
     title: 'Canh Tác Hữu Cơ Hoàn Toàn',
     description: 'Không thuốc trừ sâu hóa học. Chúng tôi sử dụng phân hữu cơ tự ủ từ đậu tương, ngô và chế phẩm sinh học. Hệ thống tưới nhỏ giọt Israel giúp duy trì độ ẩm lý tưởng, giúp cây cam hấp thụ dinh dưỡng bền bỉ.',
-    image: 'http://localhost:3000/server/uploads/canhtac.jpg',
+    image: 'https://i.ibb.co/GQ7Z4Rsp/canhtac.jpg',
     icon: Droplets,
     color: 'bg-blue-500',
     details: ['Phân hữu cơ vi sinh 100%', 'Tưới nước sạch từ khe suối', 'Bắt sâu thủ công & dùng bẫy dính']
@@ -26,7 +26,7 @@ const PRODUCTION_STEPS = [
     id: 3,
     title: 'Kiểm Soát Chất Lượng TQC',
     description: 'Kỹ thuật viên của Ngọc Hường Farm kiểm tra nhật ký vườn hàng ngày. Trước khi thu hoạch 30 ngày, các mẫu đất, nước và lá được gửi đi kiểm nghiệm tại trung tâm độc lập để đảm bảo không tồn dư hóa chất.',
-    image: 'http://localhost:3000/server/uploads/haicam.jpg',
+    image: 'https://i.ibb.co/g0cW2tk/haicam.jpg',
     icon: Microscope,
     color: 'bg-orange-500',
     details: ['Sổ nhật ký vườn điện tử', 'Kiểm nghiệm 75 chỉ tiêu an toàn', 'Đạt chuẩn TQC quốc gia']
@@ -35,7 +35,7 @@ const PRODUCTION_STEPS = [
     id: 4,
     title: 'Thu Hoạch Thủ Công Tại Vườn',
     description: 'Chúng tôi chỉ thu hoạch khi quả đạt độ chín 90% (độ đường Brix > 11). Từng quả cam được cắt tỉ mỉ bằng kéo chuyên dụng, bọc trong lưới xốp ngay tại gốc để tránh va đập, trầy xước vỏ.',
-    image: 'http://localhost:3000/server/uploads/haicam2.jpg',
+    image: 'https://i.ibb.co/q3VjpDBp/haicam2.jpg',
     icon: Scissors,
     color: 'bg-amber-500',
     details: ['Thu hoạch vào sáng sớm', 'Lựa chọn quả loại 1', 'Đóng gói tại chỗ']
@@ -44,7 +44,7 @@ const PRODUCTION_STEPS = [
     id: 5,
     title: 'Đóng Gói & Dán Tem Truy Xuất',
     description: 'Sản phẩm được làm sạch bằng hơi nước, dán tem QR Code định danh từng lô hàng. Khách hàng khi nhận sản phẩm có thể dùng điện thoại xem lại toàn bộ hành trình từ lúc ươm mầm đến khi giao hàng.',
-    image: 'http://localhost:3000/server/uploads/donggoi.jpg',
+    image: 'https://i.ibb.co/MDKLsrkG/donggoi.jpg',
     icon: Package,
     color: 'bg-rose-500',
     details: ['Lưới xốp bảo vệ 2 lớp', 'Tem QR Code chống giả', 'Thùng carton 5 lớp chuyên dụng']

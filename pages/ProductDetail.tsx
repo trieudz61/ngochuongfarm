@@ -18,7 +18,8 @@ import {
   X,
   Send,
   MessageSquare,
-  ThumbsUp
+  ThumbsUp,
+  Ban
 } from 'lucide-react';
 import { RootState, addToCart, addReview } from '../store';
 
@@ -39,6 +40,9 @@ const ProductDetail: React.FC = () => {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
+  // Kiểm tra hết hàng
+  const isOutOfStock = !product || product.stock <= 0;
+
   // Reset selected image khi product thay đổi
   useEffect(() => {
     setSelectedImageIndex(0);
@@ -54,6 +58,7 @@ const ProductDetail: React.FC = () => {
   }
 
   const handleAddToCart = () => {
+    if (isOutOfStock) return;
     dispatch(addToCart({ product, quantity }));
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
@@ -140,9 +145,15 @@ const ProductDetail: React.FC = () => {
               <div className="text-xl md:text-3xl font-black text-orange-700">
                 {product.price.toLocaleString('vi-VN')}đ<span className="text-xs md:text-sm font-normal text-gray-400 ml-1">/{product.unit}</span>
               </div>
-              <span className="text-emerald-600 text-[10px] font-black uppercase flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-lg">
-                <ShieldCheck className="w-3 h-3" /> Còn hàng
-              </span>
+              {isOutOfStock ? (
+                <span className="text-red-600 text-[10px] font-black uppercase flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg border border-red-100">
+                  <Ban className="w-3 h-3" /> Hết hàng
+                </span>
+              ) : (
+                <span className="text-emerald-600 text-[10px] font-black uppercase flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-lg">
+                  <ShieldCheck className="w-3 h-3" /> Còn {product.stock} {product.unit}
+                </span>
+              )}
             </div>
 
             <p className="text-xs md:text-sm text-gray-500 mb-8 leading-relaxed font-medium">
@@ -162,35 +173,43 @@ const ProductDetail: React.FC = () => {
                 <Calendar className="text-orange-600 w-4 h-4 shrink-0" />
                 <div>
                   <div className="text-[8px] text-gray-400 uppercase font-black tracking-widest mb-0.5">Hái ngày</div>
-                  <div className="text-[10px] md:text-xs font-black text-gray-900">{new Date(product.harvestDate).toLocaleDateString('vi-VN')}</div>
+                  <div className="text-[10px] md:text-xs font-black text-gray-900">{new Date().toLocaleDateString('vi-VN')}</div>
                 </div>
               </div>
             </div>
 
             {/* Purchase UI */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-8">
-              <div className="flex items-center justify-between bg-gray-50 rounded-xl p-1 border border-gray-100">
-                <button 
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 hover:bg-white hover:text-orange-600 transition-all font-black text-lg"
-                >-</button>
-                <input 
-                  type="number" 
-                  value={quantity} 
-                  onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                  className="w-10 text-center font-black text-sm bg-transparent outline-none" 
-                />
-                <button 
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 hover:bg-white hover:text-orange-600 transition-all font-black text-lg"
-                >+</button>
-              </div>
-              <button 
-                onClick={handleAddToCart}
-                className="flex-grow bg-orange-600 hover:bg-orange-700 text-white py-3.5 rounded-xl font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-100 text-[11px] uppercase tracking-widest"
-              >
-                <ShoppingCart className="w-4 h-4" /> Thêm Vào Giỏ
-              </button>
+              {isOutOfStock ? (
+                <div className="flex-grow bg-gray-100 text-gray-400 py-3.5 rounded-xl font-black flex items-center justify-center gap-2 text-[11px] uppercase tracking-widest cursor-not-allowed">
+                  <Ban className="w-4 h-4" /> Sản phẩm tạm hết hàng
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between bg-gray-50 rounded-xl p-1 border border-gray-100">
+                    <button 
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-10 h-10 hover:bg-white hover:text-orange-600 transition-all font-black text-lg"
+                    >-</button>
+                    <input 
+                      type="number" 
+                      value={quantity} 
+                      onChange={(e) => setQuantity(Math.min(product.stock, Math.max(1, parseInt(e.target.value) || 1)))}
+                      className="w-10 text-center font-black text-sm bg-transparent outline-none" 
+                    />
+                    <button 
+                      onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                      className="w-10 h-10 hover:bg-white hover:text-orange-600 transition-all font-black text-lg"
+                    >+</button>
+                  </div>
+                  <button 
+                    onClick={handleAddToCart}
+                    className="flex-grow bg-orange-600 hover:bg-orange-700 text-white py-3.5 rounded-xl font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-100 text-[11px] uppercase tracking-widest"
+                  >
+                    <ShoppingCart className="w-4 h-4" /> Thêm Vào Giỏ
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Trust Badges */}

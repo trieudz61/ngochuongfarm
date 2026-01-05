@@ -1,26 +1,65 @@
-// Backend API Server cho Ngọc Hường Farm
+// Backend API Server cho Ngọc Hường Farm - Supabase Version
+require('dotenv').config({ path: '../.env.local' });
+
 const express = require('express');
 const cors = require('cors');
-const sqlite3 = require('sqlite3').verbose();
+const { createClient } = require('@supabase/supabase-js');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+// Supabase config
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ Missing SUPABASE_URL or SUPABASE_KEY in environment variables');
+  console.log('Please add these to your .env.local file:');
+  console.log('SUPABASE_URL=your-project-url');
+  console.log('SUPABASE_SERVICE_KEY=your-service-role-key');
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+console.log('✅ Connected to Supabase');
+
+// JWT Secret key
+const JWT_SECRET = process.env.JWT_SECRET || 'ngochuongfarm-secret-key-2024';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Base URL cho uploads - dùng biến môi trường hoặc auto-detect
+// Helper function để lấy thời gian Việt Nam (UTC+7)
+const getVietnamTime = () => {
+  const now = new Date();
+  const vietnamTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+  return vietnamTime.toISOString().replace('Z', '+07:00');
+};
+
+// Format datetime cho hiển thị
+const formatVietnamDateTime = () => {
+  const now = new Date();
+  const vietnamOffset = 7 * 60;
+  const localOffset = now.getTimezoneOffset();
+  const vietnamTime = new Date(now.getTime() + (vietnamOffset + localOffset) * 60 * 1000);
+  
+  const year = vietnamTime.getFullYear();
+  const month = String(vietnamTime.getMonth() + 1).padStart(2, '0');
+  const day = String(vietnamTime.getDate()).padStart(2, '0');
+  const hours = String(vietnamTime.getHours()).padStart(2, '0');
+  const minutes = String(vietnamTime.getMinutes()).padStart(2, '0');
+  const seconds = String(vietnamTime.getSeconds()).padStart(2, '0');
+  
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
+// Base URL cho uploads
 const getBaseUrl = (req) => {
-  // Ưu tiên biến môi trường (cho production)
-  if (process.env.BASE_URL) {
-    return process.env.BASE_URL;
-  }
-  // Railway auto-detect: RAILWAY_PUBLIC_DOMAIN hoặc RAILWAY_STATIC_URL
-  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
-    return `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
-  }
-  // Fallback: dùng request headers (cho local dev)
+  if (process.env.BASE_URL) return process.env.BASE_URL;
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) return `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
   return `${req.protocol}://${req.get('host')}`;
 };
 
@@ -30,13 +69,13 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Middleware
-app.use(cors({
-  origin: '*', // Cho phép tất cả origins (có thể restrict sau)
-  credentials: true
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static('uploads'));
+app.use(cors({ origin: '*', credentials: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Serve uploads
+const uploadsPath = path.join(__dirname, 'uploads');
+app.use('/uploads', express.static(uploadsPath));
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -45,24 +84,20 @@ app.use((req, res, next) => {
 });
 
 // Đảm bảo thư mục uploads tồn tại
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads');
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Cấu hình Multer cho upload file
+// Cấu hình Multer
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  }
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => cb(null, `${uuidv4()}${path.extname(file.originalname)}`)
 });
 
 const upload = multer({
-  storage: storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB cho video
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
       cb(null, true);
@@ -72,20 +107,15 @@ const upload = multer({
   }
 });
 
-// Upload chỉ ảnh (10MB)
 const uploadImage = multer({
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed'));
-    }
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Only image files are allowed'));
   }
 });
 
-// Error handler cho multer
 const uploadErrorHandler = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
@@ -93,850 +123,613 @@ const uploadErrorHandler = (err, req, res, next) => {
     }
     return res.status(400).json(formatResponse(false, null, err.message));
   }
-  if (err) {
-    return res.status(400).json(formatResponse(false, null, err.message || 'Upload error'));
-  }
+  if (err) return res.status(400).json(formatResponse(false, null, err.message || 'Upload error'));
   next();
 };
 
-// Khởi tạo Database
-const db = new sqlite3.Database('ngochuongfarm.db', (err) => {
-  if (err) {
-    console.error('Error opening database:', err);
-  } else {
-    console.log('Connected to SQLite database');
-    initializeDatabase();
+// Helper: Format response
+const formatResponse = (success, data, error = null) => ({ success, data, error });
+
+// ============= PRODUCTS ROUTES =============
+app.get('/api/products', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('createdAt', { ascending: false });
+
+    if (error) throw error;
+
+    const products = data.map(row => ({
+      ...row,
+      images: row.images || [],
+      certifications: row.certifications || [],
+      isFeatured: Boolean(row.isFeatured),
+      price: Number(row.price) || 0,
+      stock: Number(row.stock) || 0,
+      averageRating: Number(row.averageRating) || 0
+    }));
+
+    res.json(formatResponse(true, products));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
   }
 });
 
-// Tạo tables
-function initializeDatabase() {
-  db.serialize(() => {
-    // Products table
-    db.run(`CREATE TABLE IF NOT EXISTS products (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      price REAL NOT NULL,
-      unit TEXT NOT NULL,
-      category TEXT NOT NULL,
-      origin TEXT,
-      harvestDate TEXT,
-      certifications TEXT,
-      images TEXT,
-      stock INTEGER DEFAULT 0,
-      description TEXT,
-      cultivationProcess TEXT,
-      isFeatured INTEGER DEFAULT 0,
-      averageRating REAL DEFAULT 0,
-      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
-    )`);
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
 
-    // News table
-    db.run(`CREATE TABLE IF NOT EXISTS news (
-      id TEXT PRIMARY KEY,
-      title TEXT NOT NULL,
-      summary TEXT,
-      content TEXT,
-      image TEXT,
-      category TEXT,
-      author TEXT,
-      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
-    )`);
+    if (error) throw error;
+    if (!data) return res.status(404).json(formatResponse(false, null, 'Product not found'));
 
-    // Orders table
-    db.run(`CREATE TABLE IF NOT EXISTS orders (
-      id TEXT PRIMARY KEY,
-      customerInfo TEXT NOT NULL,
-      items TEXT NOT NULL,
-      total REAL NOT NULL,
-      discountTotal REAL DEFAULT 0,
-      finalTotal REAL NOT NULL,
-      couponCode TEXT,
-      paymentMethod TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'Pending',
-      cookieId TEXT,
-      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
-    )`);
-
-    // Coupons table
-    db.run(`CREATE TABLE IF NOT EXISTS coupons (
-      id TEXT PRIMARY KEY,
-      code TEXT UNIQUE NOT NULL,
-      discountType TEXT NOT NULL,
-      discountValue REAL NOT NULL,
-      minOrderValue REAL DEFAULT 0,
-      expiryDate TEXT,
-      isActive INTEGER DEFAULT 1,
-      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
-    )`);
-
-    // Reviews table
-    db.run(`CREATE TABLE IF NOT EXISTS reviews (
-      id TEXT PRIMARY KEY,
-      productId TEXT NOT NULL,
-      userName TEXT NOT NULL,
-      rating INTEGER NOT NULL,
-      comment TEXT,
-      date TEXT DEFAULT CURRENT_TIMESTAMP,
-      isVerified INTEGER DEFAULT 0,
-      FOREIGN KEY (productId) REFERENCES products(id)
-    )`);
-
-    // Users table
-    db.run(`CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      password TEXT,
-      role TEXT DEFAULT 'user',
-      createdAt TEXT DEFAULT CURRENT_TIMESTAMP
-    )`, () => {
-      // Migration: Thêm column cookieId vào bảng orders nếu chưa có
-      // Chạy sau khi tất cả tables đã được tạo
-      db.all("PRAGMA table_info(orders)", (err, columns) => {
-        if (err) {
-          console.error('Error checking orders table structure:', err);
-          return;
-        }
-
-        const hasCookieId = columns && columns.some(col => col.name === 'cookieId');
-        if (!hasCookieId) {
-          console.log('[Migration] Adding cookieId column to orders table...');
-          db.run(`ALTER TABLE orders ADD COLUMN cookieId TEXT`, (alterErr) => {
-            if (alterErr) {
-              // Kiểm tra lỗi cụ thể
-              if (alterErr.message && alterErr.message.includes('duplicate column')) {
-                console.log('[Migration] cookieId column already exists (duplicate column error)');
-              } else {
-                console.error('[Migration] Error adding cookieId column:', alterErr);
-              }
-            } else {
-              console.log('[Migration] ✅ Successfully added cookieId column to orders table');
-            }
-          });
-        } else {
-          console.log('[Migration] ✅ cookieId column already exists in orders table');
-        }
-      });
-    });
-  });
-}
-
-// Helper: Format response
-const formatResponse = (success, data, error = null) => ({
-  success,
-  data,
-  error
+    const product = {
+      ...data,
+      images: data.images || [],
+      certifications: data.certifications || [],
+      isFeatured: Boolean(data.isFeatured)
+    };
+    res.json(formatResponse(true, product));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-// ============= PRODUCTS ROUTES =============
-app.get('/api/products', (req, res) => {
-  db.all('SELECT * FROM products ORDER BY createdAt DESC', (err, rows) => {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else {
-      const products = rows.map(row => {
-        try {
-          return {
-            ...row,
-            images: row.images ? (typeof row.images === 'string' ? JSON.parse(row.images) : row.images) : [],
-            certifications: row.certifications ? (typeof row.certifications === 'string' ? JSON.parse(row.certifications) : row.certifications) : [],
-            isFeatured: Boolean(row.isFeatured === 1 || row.isFeatured === '1' || row.isFeatured === true),
-            price: Number(row.price) || 0,
-            stock: Number(row.stock) || 0,
-            averageRating: Number(row.averageRating) || 0
-          };
-        } catch (parseError) {
-          console.error('Error parsing product:', row.id, parseError);
-          return {
-            ...row,
-            images: [],
-            certifications: [],
-            isFeatured: false,
-            price: Number(row.price) || 0,
-            stock: Number(row.stock) || 0,
-            averageRating: Number(row.averageRating) || 0
-          };
-        }
-      });
-      console.log(`[API] Returning ${products.length} products`);
-      res.json(formatResponse(true, products));
-    }
-  });
+app.post('/api/products', async (req, res) => {
+  try {
+    const now = formatVietnamDateTime();
+    const product = {
+      id: req.body.id || `P${Date.now()}`,
+      name: req.body.name,
+      price: req.body.price,
+      unit: req.body.unit,
+      category: req.body.category,
+      origin: req.body.origin,
+      harvestDate: req.body.harvestDate,
+      certifications: req.body.certifications || [],
+      images: req.body.images || [],
+      stock: req.body.stock || 0,
+      description: req.body.description,
+      cultivationProcess: req.body.cultivationProcess,
+      isFeatured: req.body.isFeatured || false,
+      averageRating: req.body.averageRating || 0,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    const { data, error } = await supabase.from('products').insert([product]).select().single();
+    if (error) throw error;
+    res.json(formatResponse(true, data));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.get('/api/products/:id', (req, res) => {
-  db.get('SELECT * FROM products WHERE id = ?', [req.params.id], (err, row) => {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else if (!row) {
-      res.status(404).json(formatResponse(false, null, 'Product not found'));
-    } else {
-      const product = {
-        ...row,
-        images: row.images ? JSON.parse(row.images) : [],
-        certifications: row.certifications ? JSON.parse(row.certifications) : [],
-        isFeatured: Boolean(row.isFeatured)
-      };
-      res.json(formatResponse(true, product));
-    }
-  });
+app.put('/api/products/:id', async (req, res) => {
+  try {
+    const now = formatVietnamDateTime();
+    const product = {
+      name: req.body.name,
+      price: req.body.price,
+      unit: req.body.unit,
+      category: req.body.category,
+      origin: req.body.origin,
+      harvestDate: req.body.harvestDate,
+      certifications: req.body.certifications || [],
+      images: req.body.images || [],
+      stock: req.body.stock || 0,
+      description: req.body.description,
+      cultivationProcess: req.body.cultivationProcess,
+      isFeatured: req.body.isFeatured || false,
+      averageRating: req.body.averageRating || 0,
+      updatedAt: now
+    };
+
+    const { data, error } = await supabase
+      .from('products')
+      .update(product)
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(formatResponse(true, data));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.post('/api/products', (req, res) => {
-  const product = {
-    id: req.body.id || uuidv4(),
-    ...req.body,
-    images: JSON.stringify(req.body.images || []),
-    certifications: JSON.stringify(req.body.certifications || []),
-    isFeatured: req.body.isFeatured ? 1 : 0
-  };
-
-  db.run(
-    `INSERT INTO products (id, name, price, unit, category, origin, harvestDate, certifications, images, stock, description, cultivationProcess, isFeatured, averageRating)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [product.id, product.name, product.price, product.unit, product.category, product.origin,
-    product.harvestDate, product.certifications, product.images, product.stock,
-    product.description, product.cultivationProcess, product.isFeatured, product.averageRating || 0],
-    function (err) {
-      if (err) {
-        res.status(500).json(formatResponse(false, null, err.message));
-      } else {
-        res.json(formatResponse(true, { ...product, id: this.lastID || product.id }));
-      }
-    }
-  );
-});
-
-app.put('/api/products/:id', (req, res) => {
-  const product = {
-    ...req.body,
-    images: JSON.stringify(req.body.images || []),
-    certifications: JSON.stringify(req.body.certifications || []),
-    isFeatured: req.body.isFeatured ? 1 : 0
-  };
-
-  db.run(
-    `UPDATE products SET name = ?, price = ?, unit = ?, category = ?, origin = ?, harvestDate = ?,
-     certifications = ?, images = ?, stock = ?, description = ?, cultivationProcess = ?, isFeatured = ?,
-     averageRating = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?`,
-    [product.name, product.price, product.unit, product.category, product.origin, product.harvestDate,
-    product.certifications, product.images, product.stock, product.description, product.cultivationProcess,
-    product.isFeatured, product.averageRating || 0, req.params.id],
-    function (err) {
-      if (err) {
-        res.status(500).json(formatResponse(false, null, err.message));
-      } else {
-        res.json(formatResponse(true, { ...product, id: req.params.id }));
-      }
-    }
-  );
-});
-
-app.delete('/api/products/:id', (req, res) => {
-  db.run('DELETE FROM products WHERE id = ?', [req.params.id], function (err) {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else {
-      res.json(formatResponse(true, { deleted: true }));
-    }
-  });
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    const { error } = await supabase.from('products').delete().eq('id', req.params.id);
+    if (error) throw error;
+    res.json(formatResponse(true, { deleted: true }));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
 app.post('/api/products/upload-image', uploadImage.single('image'), uploadErrorHandler, (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json(formatResponse(false, null, 'No file uploaded'));
-    }
-    const imageUrl = `/uploads/${req.file.filename}`;
+    if (!req.file) return res.status(400).json(formatResponse(false, null, 'No file uploaded'));
     const baseUrl = getBaseUrl(req);
-    const fullUrl = `${baseUrl}${imageUrl}`;
-    console.log(`[Upload] File saved: ${req.file.filename}, URL: ${fullUrl}`);
+    const fullUrl = `${baseUrl}/uploads/${req.file.filename}`;
     res.json(formatResponse(true, { url: fullUrl, imageUrl: fullUrl }));
   } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json(formatResponse(false, null, error.message || 'Upload failed'));
+    res.status(500).json(formatResponse(false, null, error.message));
   }
 });
 
+
 // ============= NEWS ROUTES =============
-app.get('/api/news', (req, res) => {
-  db.all('SELECT * FROM news ORDER BY createdAt DESC', (err, rows) => {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else {
-      res.json(formatResponse(true, rows));
-    }
-  });
+app.get('/api/news', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('news')
+      .select('*')
+      .order('createdAt', { ascending: false });
+
+    if (error) throw error;
+    res.json(formatResponse(true, data));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.get('/api/news/:id', (req, res) => {
-  db.get('SELECT * FROM news WHERE id = ?', [req.params.id], (err, row) => {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else if (!row) {
-      res.status(404).json(formatResponse(false, null, 'News not found'));
-    } else {
-      res.json(formatResponse(true, row));
-    }
-  });
+app.get('/api/news/:id', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('news')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json(formatResponse(false, null, 'News not found'));
+    res.json(formatResponse(true, data));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.post('/api/news', (req, res) => {
-  const article = {
-    id: req.body.id || uuidv4(),
-    ...req.body
-  };
+app.post('/api/news', async (req, res) => {
+  try {
+    const now = formatVietnamDateTime();
+    const article = {
+      id: req.body.id || uuidv4(),
+      title: req.body.title,
+      summary: req.body.summary,
+      content: req.body.content,
+      image: req.body.image,
+      category: req.body.category,
+      author: req.body.author,
+      createdAt: now,
+      updatedAt: now
+    };
 
-  db.run(
-    `INSERT INTO news (id, title, summary, content, image, category, author)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [article.id, article.title, article.summary, article.content, article.image, article.category, article.author],
-    function (err) {
-      if (err) {
-        res.status(500).json(formatResponse(false, null, err.message));
-      } else {
-        res.json(formatResponse(true, article));
-      }
-    }
-  );
+    const { data, error } = await supabase.from('news').insert([article]).select().single();
+    if (error) throw error;
+    res.json(formatResponse(true, data));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.put('/api/news/:id', (req, res) => {
-  db.run(
-    `UPDATE news SET title = ?, summary = ?, content = ?, image = ?, category = ?, author = ?,
-     updatedAt = CURRENT_TIMESTAMP WHERE id = ?`,
-    [req.body.title, req.body.summary, req.body.content, req.body.image, req.body.category, req.body.author, req.params.id],
-    function (err) {
-      if (err) {
-        res.status(500).json(formatResponse(false, null, err.message));
-      } else {
-        res.json(formatResponse(true, { ...req.body, id: req.params.id }));
-      }
-    }
-  );
+app.put('/api/news/:id', async (req, res) => {
+  try {
+    const now = formatVietnamDateTime();
+    const article = {
+      title: req.body.title,
+      summary: req.body.summary,
+      content: req.body.content,
+      image: req.body.image,
+      category: req.body.category,
+      author: req.body.author,
+      updatedAt: now
+    };
+
+    const { data, error } = await supabase
+      .from('news')
+      .update(article)
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(formatResponse(true, data));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.delete('/api/news/:id', (req, res) => {
-  db.run('DELETE FROM news WHERE id = ?', [req.params.id], function (err) {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else {
-      res.json(formatResponse(true, { deleted: true }));
-    }
-  });
+app.delete('/api/news/:id', async (req, res) => {
+  try {
+    const { error } = await supabase.from('news').delete().eq('id', req.params.id);
+    if (error) throw error;
+    res.json(formatResponse(true, { deleted: true }));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
 app.post('/api/news/upload-image', uploadImage.single('image'), uploadErrorHandler, (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json(formatResponse(false, null, 'No file uploaded'));
-    }
-    const imageUrl = `/uploads/${req.file.filename}`;
+    if (!req.file) return res.status(400).json(formatResponse(false, null, 'No file uploaded'));
     const baseUrl = getBaseUrl(req);
-    const fullUrl = `${baseUrl}${imageUrl}`;
-    console.log(`[Upload] File saved: ${req.file.filename}, URL: ${fullUrl}`);
+    const fullUrl = `${baseUrl}/uploads/${req.file.filename}`;
     res.json(formatResponse(true, { url: fullUrl, imageUrl: fullUrl }));
   } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json(formatResponse(false, null, error.message || 'Upload failed'));
+    res.status(500).json(formatResponse(false, null, error.message));
   }
 });
 
-// Upload video endpoint
 app.post('/api/news/upload-video', upload.single('video'), uploadErrorHandler, (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json(formatResponse(false, null, 'No file uploaded'));
-    }
-    const videoUrl = `/uploads/${req.file.filename}`;
+    if (!req.file) return res.status(400).json(formatResponse(false, null, 'No file uploaded'));
     const baseUrl = getBaseUrl(req);
-    const fullUrl = `${baseUrl}${videoUrl}`;
-    console.log(`[Upload] Video saved: ${req.file.filename}, URL: ${fullUrl}`);
+    const fullUrl = `${baseUrl}/uploads/${req.file.filename}`;
     res.json(formatResponse(true, { url: fullUrl, videoUrl: fullUrl }));
   } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json(formatResponse(false, null, error.message || 'Upload failed'));
+    res.status(500).json(formatResponse(false, null, error.message));
   }
 });
 
 // ============= ORDERS ROUTES =============
-app.get('/api/orders', (req, res) => {
-  db.all('SELECT * FROM orders ORDER BY createdAt DESC', (err, rows) => {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else {
-      const orders = rows.map(row => ({
-        ...row,
-        items: JSON.parse(row.items),
-        customerInfo: JSON.parse(row.customerInfo),
-        cookieId: row.cookieId || null
-      }));
-      res.json(formatResponse(true, orders));
-    }
-  });
+app.get('/api/orders', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('createdAt', { ascending: false });
+
+    if (error) throw error;
+    res.json(formatResponse(true, data));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-// Lấy orders theo cookieId
-app.get('/api/orders/cookie/:cookieId', (req, res) => {
-  const { cookieId } = req.params;
-  console.log(`[API] Fetching orders for cookieId: ${cookieId}`);
+app.get('/api/orders/cookie/:cookieId', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('cookieId', req.params.cookieId)
+      .order('createdAt', { ascending: false });
 
-  db.all('SELECT * FROM orders WHERE cookieId = ? ORDER BY createdAt DESC', [cookieId], (err, rows) => {
-    if (err) {
-      console.error('[API] Error fetching orders by cookieId:', err);
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else {
-      const orders = rows.map(row => ({
-        ...row,
-        items: JSON.parse(row.items),
-        customerInfo: JSON.parse(row.customerInfo),
-        cookieId: row.cookieId || null
-      }));
-      console.log(`[API] Found ${orders.length} orders for cookieId: ${cookieId}`);
-      res.json(formatResponse(true, orders));
-    }
-  });
+    if (error) throw error;
+    res.json(formatResponse(true, data));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.get('/api/orders/:id', (req, res) => {
-  db.get('SELECT * FROM orders WHERE id = ?', [req.params.id], (err, row) => {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else if (!row) {
-      res.status(404).json(formatResponse(false, null, 'Order not found'));
-    } else {
-      const order = {
-        ...row,
-        items: JSON.parse(row.items),
-        customerInfo: JSON.parse(row.customerInfo)
-      };
-      res.json(formatResponse(true, order));
-    }
-  });
+app.get('/api/orders/:id', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json(formatResponse(false, null, 'Order not found'));
+    res.json(formatResponse(true, data));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.post('/api/orders', (req, res) => {
-  const order = {
-    id: req.body.id || `ORD-${uuidv4().substr(0, 8).toUpperCase()}`,
-    ...req.body,
-    items: JSON.stringify(req.body.items || []),
-    customerInfo: JSON.stringify(req.body.customerInfo || {}),
-    cookieId: req.body.cookieId || null
-  };
+app.post('/api/orders', async (req, res) => {
+  try {
+    const now = formatVietnamDateTime();
+    const order = {
+      id: req.body.id || `ORD-${uuidv4().substr(0, 8).toUpperCase()}`,
+      customerInfo: req.body.customerInfo || {},
+      items: req.body.items || [],
+      total: req.body.total,
+      discountTotal: req.body.discountTotal || 0,
+      finalTotal: req.body.finalTotal,
+      couponCode: req.body.couponCode,
+      paymentMethod: req.body.paymentMethod,
+      status: req.body.status || 'Pending',
+      cookieId: req.body.cookieId || null,
+      createdAt: now,
+      updatedAt: now
+    };
 
-  db.run(
-    `INSERT INTO orders (id, customerInfo, items, total, discountTotal, finalTotal, couponCode, paymentMethod, status, cookieId)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [order.id, order.customerInfo, order.items, order.total, order.discountTotal,
-    order.finalTotal, order.couponCode, order.paymentMethod, order.status, order.cookieId],
-    function (err) {
-      if (err) {
-        res.status(500).json(formatResponse(false, null, err.message));
-      } else {
-        res.json(formatResponse(true, {
-          ...req.body,
-          id: order.id,
-          items: req.body.items,
-          customerInfo: req.body.customerInfo,
-          cookieId: order.cookieId || req.body.cookieId || null
-        }));
-      }
-    }
-  );
+    const { data, error } = await supabase.from('orders').insert([order]).select().single();
+    if (error) throw error;
+    res.json(formatResponse(true, data));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.patch('/api/orders/:id/status', (req, res) => {
-  db.run(
-    'UPDATE orders SET status = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
-    [req.body.status, req.params.id],
-    function (err) {
-      if (err) {
-        res.status(500).json(formatResponse(false, null, err.message));
-      } else {
-        res.json(formatResponse(true, { id: req.params.id, status: req.body.status }));
-      }
-    }
-  );
+app.patch('/api/orders/:id/status', async (req, res) => {
+  try {
+    const now = formatVietnamDateTime();
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status: req.body.status, updatedAt: now })
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(formatResponse(true, { id: req.params.id, status: req.body.status }));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.delete('/api/orders/:id', (req, res) => {
-  db.run('DELETE FROM orders WHERE id = ?', [req.params.id], function (err) {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else if (this.changes === 0) {
-      res.status(404).json(formatResponse(false, null, 'Order not found'));
-    } else {
-      console.log(`[API] Deleted order: ${req.params.id}`);
-      res.json(formatResponse(true, { deleted: true, id: req.params.id }));
-    }
-  });
+app.delete('/api/orders/:id', async (req, res) => {
+  try {
+    const { error } = await supabase.from('orders').delete().eq('id', req.params.id);
+    if (error) throw error;
+    res.json(formatResponse(true, { deleted: true, id: req.params.id }));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-// Admin endpoint: Clear ALL orders (chỉ dùng để testing/reset)
-app.delete('/api/orders/admin/clear-all', (req, res) => {
-  // Kiểm tra admin token hoặc secret key (bảo mật đơn giản)
+app.delete('/api/orders/admin/clear-all', async (req, res) => {
   const adminSecret = req.headers['x-admin-secret'] || req.query.secret;
   if (adminSecret !== 'ngochuongfarm2024') {
-    return res.status(403).json(formatResponse(false, null, 'Unauthorized: Invalid admin secret'));
+    return res.status(403).json(formatResponse(false, null, 'Unauthorized'));
   }
 
-  db.run('DELETE FROM orders', function (err) {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else {
-      console.log(`[API] ⚠️ CLEARED ALL ORDERS - Deleted ${this.changes} orders from database`);
-      res.json(formatResponse(true, {
-        deleted: true,
-        count: this.changes,
-        message: `Successfully deleted ${this.changes} orders`
-      }));
-    }
-  });
+  try {
+    const { error } = await supabase.from('orders').delete().neq('id', '');
+    if (error) throw error;
+    res.json(formatResponse(true, { deleted: true, message: 'All orders cleared' }));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.get('/api/orders/track/:id', (req, res) => {
-  db.get('SELECT * FROM orders WHERE id = ?', [req.params.id], (err, row) => {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else if (!row) {
-      res.status(404).json(formatResponse(false, null, 'Order not found'));
-    } else {
-      const order = {
-        ...row,
-        items: JSON.parse(row.items),
-        customerInfo: JSON.parse(row.customerInfo),
-        cookieId: row.cookieId || null
-      };
-      res.json(formatResponse(true, order));
-    }
-  });
+app.get('/api/orders/track/:id', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json(formatResponse(false, null, 'Order not found'));
+    res.json(formatResponse(true, data));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
+
 
 // ============= COUPONS ROUTES =============
-app.get('/api/coupons', (req, res) => {
-  db.all('SELECT * FROM coupons ORDER BY createdAt DESC', (err, rows) => {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else {
-      const coupons = rows.map(row => ({
-        ...row,
-        isActive: Boolean(row.isActive)
-      }));
-      res.json(formatResponse(true, coupons));
-    }
-  });
+app.get('/api/coupons', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('coupons')
+      .select('*')
+      .order('createdAt', { ascending: false });
+
+    if (error) throw error;
+    const coupons = data.map(row => ({ ...row, isActive: Boolean(row.isActive) }));
+    res.json(formatResponse(true, coupons));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.post('/api/coupons', (req, res) => {
-  const coupon = {
-    id: req.body.id || uuidv4(),
-    ...req.body,
-    isActive: req.body.isActive ? 1 : 0
-  };
+app.post('/api/coupons', async (req, res) => {
+  try {
+    const now = formatVietnamDateTime();
+    const coupon = {
+      id: req.body.id || uuidv4(),
+      code: req.body.code,
+      discountType: req.body.discountType,
+      discountValue: req.body.discountValue,
+      minOrderValue: req.body.minOrderValue || 0,
+      expiryDate: req.body.expiryDate,
+      isActive: req.body.isActive !== false,
+      createdAt: now,
+      updatedAt: now
+    };
 
-  db.run(
-    `INSERT INTO coupons (id, code, discountType, discountValue, minOrderValue, expiryDate, isActive)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [coupon.id, coupon.code, coupon.discountType, coupon.discountValue,
-    coupon.minOrderValue, coupon.expiryDate, coupon.isActive],
-    function (err) {
-      if (err) {
-        res.status(500).json(formatResponse(false, null, err.message));
-      } else {
-        res.json(formatResponse(true, { ...coupon, isActive: Boolean(coupon.isActive) }));
-      }
-    }
-  );
+    const { data, error } = await supabase.from('coupons').insert([coupon]).select().single();
+    if (error) throw error;
+    res.json(formatResponse(true, { ...data, isActive: Boolean(data.isActive) }));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.put('/api/coupons/:id', (req, res) => {
-  const coupon = {
-    ...req.body,
-    isActive: req.body.isActive ? 1 : 0
-  };
+app.put('/api/coupons/:id', async (req, res) => {
+  try {
+    const now = formatVietnamDateTime();
+    const coupon = {
+      code: req.body.code,
+      discountType: req.body.discountType,
+      discountValue: req.body.discountValue,
+      minOrderValue: req.body.minOrderValue || 0,
+      expiryDate: req.body.expiryDate,
+      isActive: req.body.isActive !== false,
+      updatedAt: now
+    };
 
-  db.run(
-    `UPDATE coupons SET code = ?, discountType = ?, discountValue = ?, minOrderValue = ?,
-     expiryDate = ?, isActive = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?`,
-    [coupon.code, coupon.discountType, coupon.discountValue, coupon.minOrderValue,
-    coupon.expiryDate, coupon.isActive, req.params.id],
-    function (err) {
-      if (err) {
-        res.status(500).json(formatResponse(false, null, err.message));
-      } else {
-        res.json(formatResponse(true, { ...coupon, id: req.params.id, isActive: Boolean(coupon.isActive) }));
-      }
-    }
-  );
+    const { data, error } = await supabase
+      .from('coupons')
+      .update(coupon)
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(formatResponse(true, { ...data, isActive: Boolean(data.isActive) }));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.delete('/api/coupons/:id', (req, res) => {
-  db.run('DELETE FROM coupons WHERE id = ?', [req.params.id], function (err) {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else {
-      res.json(formatResponse(true, { deleted: true }));
-    }
-  });
+app.delete('/api/coupons/:id', async (req, res) => {
+  try {
+    const { error } = await supabase.from('coupons').delete().eq('id', req.params.id);
+    if (error) throw error;
+    res.json(formatResponse(true, { deleted: true }));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.get('/api/coupons/validate/:code', (req, res) => {
-  db.get('SELECT * FROM coupons WHERE code = ? AND isActive = 1', [req.params.code.toUpperCase()], (err, row) => {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else if (!row) {
-      res.status(404).json(formatResponse(false, null, 'Coupon not found or inactive'));
-    } else {
-      const coupon = { ...row, isActive: Boolean(row.isActive) };
-      // Check expiry
-      if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
-        res.status(400).json(formatResponse(false, null, 'Coupon expired'));
-      } else {
-        res.json(formatResponse(true, coupon));
-      }
+app.get('/api/coupons/validate/:code', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('coupons')
+      .select('*')
+      .eq('code', req.params.code.toUpperCase())
+      .eq('isActive', true)
+      .single();
+
+    if (error || !data) {
+      return res.status(404).json(formatResponse(false, null, 'Coupon not found or inactive'));
     }
-  });
+
+    if (data.expiryDate && new Date(data.expiryDate) < new Date()) {
+      return res.status(400).json(formatResponse(false, null, 'Coupon expired'));
+    }
+
+    res.json(formatResponse(true, { ...data, isActive: Boolean(data.isActive) }));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
 // ============= REVIEWS ROUTES =============
-app.post('/api/products/:id/reviews', (req, res) => {
-  const review = {
-    id: uuidv4(),
-    productId: req.params.id,
-    ...req.body
-  };
+app.post('/api/products/:id/reviews', async (req, res) => {
+  try {
+    const review = {
+      id: uuidv4(),
+      productId: req.params.id,
+      userName: req.body.userName,
+      rating: req.body.rating,
+      comment: req.body.comment,
+      isVerified: req.body.isVerified || false,
+      date: new Date().toISOString()
+    };
 
-  db.run(
-    `INSERT INTO reviews (id, productId, userName, rating, comment, isVerified)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [review.id, review.productId, review.userName, review.rating, review.comment, review.isVerified ? 1 : 0],
-    function (err) {
-      if (err) {
-        res.status(500).json(formatResponse(false, null, err.message));
-      } else {
-        // Update product average rating
-        db.all('SELECT AVG(rating) as avg FROM reviews WHERE productId = ?', [req.params.id], (err, rows) => {
-          if (!err && rows[0]) {
-            db.run('UPDATE products SET averageRating = ? WHERE id = ?', [rows[0].avg, req.params.id]);
-          }
-        });
-        res.json(formatResponse(true, review));
-      }
-    }
-  );
+    const { data, error } = await supabase.from('reviews').insert([review]).select().single();
+    if (error) throw error;
+
+    // Update product average rating (trigger sẽ tự động làm trong Supabase)
+    res.json(formatResponse(true, data));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
-app.get('/api/products/:id/reviews', (req, res) => {
-  db.all('SELECT * FROM reviews WHERE productId = ? ORDER BY date DESC', [req.params.id], (err, rows) => {
-    if (err) {
-      res.status(500).json(formatResponse(false, null, err.message));
-    } else {
-      const reviews = rows.map(row => ({
-        ...row,
-        isVerified: Boolean(row.isVerified)
-      }));
-      res.json(formatResponse(true, reviews));
-    }
-  });
+app.get('/api/products/:id/reviews', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('productId', req.params.id)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    const reviews = data.map(row => ({ ...row, isVerified: Boolean(row.isVerified) }));
+    res.json(formatResponse(true, reviews));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, error.message));
+  }
 });
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json(formatResponse(true, { status: 'OK', timestamp: new Date().toISOString() }));
+  res.json(formatResponse(true, { status: 'OK', database: 'Supabase', timestamp: new Date().toISOString() }));
 });
 
-// Seed data endpoint (chỉ dùng để khởi tạo dữ liệu mẫu)
-app.post('/api/seed-data', (req, res) => {
-  const adminSecret = req.headers['x-admin-secret'] || req.query.secret;
-  if (adminSecret !== 'ngochuongfarm2024') {
-    return res.status(403).json(formatResponse(false, null, 'Unauthorized: Invalid admin secret'));
+// ============= ADMIN AUTH ROUTES =============
+app.post('/api/admin/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json(formatResponse(false, null, 'Vui lòng nhập tài khoản và mật khẩu'));
   }
 
-  console.log('🌱 Seeding sample data...');
+  try {
+    const { data: admin, error } = await supabase
+      .from('admins')
+      .select('*')
+      .eq('username', username)
+      .single();
 
-  // Sample products
-  const sampleProducts = [
-    {
-      id: uuidv4(),
-      name: 'Rau cải xanh hữu cơ',
-      price: 25000,
-      unit: 'kg',
-      category: 'Rau lá',
-      origin: 'Đà Lạt',
-      harvestDate: '2024-01-01',
-      certifications: JSON.stringify(['Hữu cơ', 'VietGAP']),
-      images: JSON.stringify(['/uploads/sample-cai-xanh.jpg']),
-      stock: 50,
-      description: 'Rau cải xanh tươi ngon, trồng theo phương pháp hữu cơ',
-      cultivationProcess: 'Không sử dụng thuốc trừ sâu, phân bón hóa học',
-      isFeatured: 1,
-      averageRating: 4.5
-    },
-    {
-      id: uuidv4(),
-      name: 'Cà chua cherry',
-      price: 45000,
-      unit: 'kg',
-      category: 'Trái cây',
-      origin: 'Lâm Đồng',
-      harvestDate: '2024-01-02',
-      certifications: JSON.stringify(['VietGAP']),
-      images: JSON.stringify(['/uploads/sample-ca-chua.jpg']),
-      stock: 30,
-      description: 'Cà chua cherry ngọt tự nhiên, giàu vitamin C',
-      cultivationProcess: 'Trồng trong nhà kính, tưới nước nhỏ giọt',
-      isFeatured: 1,
-      averageRating: 4.8
-    },
-    {
-      id: uuidv4(),
-      name: 'Xà lách xoăn',
-      price: 20000,
-      unit: 'kg',
-      category: 'Rau lá',
-      origin: 'Đà Lạt',
-      harvestDate: '2024-01-03',
-      certifications: JSON.stringify(['Hữu cơ']),
-      images: JSON.stringify(['/uploads/sample-xa-lach.jpg']),
-      stock: 40,
-      description: 'Xà lách xoăn giòn ngọt, thích hợp làm salad',
-      cultivationProcess: 'Trồng thủy canh, không đất',
-      isFeatured: 0,
-      averageRating: 4.2
+    if (error || !admin) {
+      return res.status(401).json(formatResponse(false, null, 'Tài khoản admin không tồn tại'));
     }
-  ];
 
-  // Sample news
-  const sampleNews = [
-    {
-      id: uuidv4(),
-      title: 'Kỹ thuật trồng rau sạch tại nhà',
-      summary: 'Hướng dẫn chi tiết cách trồng rau sạch ngay tại nhà với chi phí thấp',
-      content: 'Nội dung chi tiết về kỹ thuật trồng rau sạch tại nhà bao gồm: chọn giống, chuẩn bị đất, chăm sóc và thu hoạch.',
-      image: '/uploads/sample-news-1.jpg',
-      category: 'Kỹ thuật',
-      author: 'Ngọc Hường Farm'
-    },
-    {
-      id: uuidv4(),
-      title: 'Lợi ích của thực phẩm hữu cơ',
-      summary: 'Tại sao nên chọn thực phẩm hữu cơ cho sức khỏe gia đình',
-      content: 'Thực phẩm hữu cơ mang lại nhiều lợi ích cho sức khỏe: không chứa hóa chất độc hại, giàu dinh dưỡng, thân thiện với môi trường.',
-      image: '/uploads/sample-news-2.jpg',
-      category: 'Sức khỏe',
-      author: 'Ngọc Hường Farm'
+    const isValidPassword = await bcrypt.compare(password, admin.password);
+    if (!isValidPassword) {
+      return res.status(401).json(formatResponse(false, null, 'Mật khẩu không chính xác'));
     }
-  ];
 
-  // Sample coupons
-  const sampleCoupons = [
-    {
-      id: uuidv4(),
-      code: 'WELCOME10',
-      discountType: 'percentage',
-      discountValue: 10,
-      minOrderValue: 100000,
-      expiryDate: '2024-12-31',
-      isActive: 1
-    },
-    {
-      id: uuidv4(),
-      code: 'FREESHIP',
-      discountType: 'fixed',
-      discountValue: 30000,
-      minOrderValue: 200000,
-      expiryDate: '2024-12-31',
-      isActive: 1
+    const token = jwt.sign(
+      { id: admin.id, username: admin.username, role: 'admin' },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json(formatResponse(true, {
+      token,
+      user: {
+        id: admin.id,
+        name: admin.name,
+        username: admin.username,
+        role: 'admin'
+      }
+    }));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, 'Lỗi xác thực'));
+  }
+});
+
+app.post('/api/admin/change-password', async (req, res) => {
+  const { username, oldPassword, newPassword } = req.body;
+
+  if (!username || !oldPassword || !newPassword) {
+    return res.status(400).json(formatResponse(false, null, 'Thiếu thông tin'));
+  }
+
+  try {
+    const { data: admin, error } = await supabase
+      .from('admins')
+      .select('*')
+      .eq('username', username)
+      .single();
+
+    if (error || !admin) {
+      return res.status(404).json(formatResponse(false, null, 'Admin không tồn tại'));
     }
-  ];
 
-  db.serialize(() => {
-    let completed = 0;
-    const total = sampleProducts.length + sampleNews.length + sampleCoupons.length;
+    const isValidPassword = await bcrypt.compare(oldPassword, admin.password);
+    if (!isValidPassword) {
+      return res.status(401).json(formatResponse(false, null, 'Mật khẩu cũ không đúng'));
+    }
 
-    // Insert products
-    const productStmt = db.prepare(`
-      INSERT OR REPLACE INTO products 
-      (id, name, price, unit, category, origin, harvestDate, certifications, images, stock, description, cultivationProcess, isFeatured, averageRating)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    const { error: updateError } = await supabase
+      .from('admins')
+      .update({ password: hashedNewPassword })
+      .eq('username', username);
 
-    sampleProducts.forEach(product => {
-      productStmt.run([
-        product.id, product.name, product.price, product.unit, product.category,
-        product.origin, product.harvestDate, product.certifications, product.images,
-        product.stock, product.description, product.cultivationProcess,
-        product.isFeatured, product.averageRating
-      ], function (err) {
-        if (err) console.error('Error inserting product:', err);
-        completed++;
-        if (completed === total) {
-          res.json(formatResponse(true, {
-            message: 'Sample data seeded successfully',
-            products: sampleProducts.length,
-            news: sampleNews.length,
-            coupons: sampleCoupons.length
-          }));
-        }
-      });
-    });
-    productStmt.finalize();
-
-    // Insert news
-    const newsStmt = db.prepare(`
-      INSERT OR REPLACE INTO news (id, title, summary, content, image, category, author)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    sampleNews.forEach(article => {
-      newsStmt.run([
-        article.id, article.title, article.summary, article.content,
-        article.image, article.category, article.author
-      ], function (err) {
-        if (err) console.error('Error inserting news:', err);
-        completed++;
-        if (completed === total) {
-          res.json(formatResponse(true, {
-            message: 'Sample data seeded successfully',
-            products: sampleProducts.length,
-            news: sampleNews.length,
-            coupons: sampleCoupons.length
-          }));
-        }
-      });
-    });
-    newsStmt.finalize();
-
-    // Insert coupons
-    const couponStmt = db.prepare(`
-      INSERT OR REPLACE INTO coupons (id, code, discountType, discountValue, minOrderValue, expiryDate, isActive)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    sampleCoupons.forEach(coupon => {
-      couponStmt.run([
-        coupon.id, coupon.code, coupon.discountType, coupon.discountValue,
-        coupon.minOrderValue, coupon.expiryDate, coupon.isActive
-      ], function (err) {
-        if (err) console.error('Error inserting coupon:', err);
-        completed++;
-        if (completed === total) {
-          res.json(formatResponse(true, {
-            message: 'Sample data seeded successfully',
-            products: sampleProducts.length,
-            news: sampleNews.length,
-            coupons: sampleCoupons.length
-          }));
-        }
-      });
-    });
-    couponStmt.finalize();
-  });
+    if (updateError) throw updateError;
+    res.json(formatResponse(true, { message: 'Đổi mật khẩu thành công' }));
+  } catch (error) {
+    res.status(500).json(formatResponse(false, null, 'Lỗi đổi mật khẩu'));
+  }
 });
 
 // Serve frontend trong production
@@ -950,5 +743,5 @@ if (process.env.NODE_ENV === 'production') {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📦 API endpoints available at http://localhost:${PORT}/api`);
+  console.log(`🗄️ Database: Supabase`);
 });
-

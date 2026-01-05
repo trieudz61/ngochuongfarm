@@ -1,10 +1,9 @@
 
 import React, { useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch, createProduct, updateProduct, deleteProduct, productsAPI } from '../store';
+import { RootState, AppDispatch, createProduct, updateProduct, deleteProduct } from '../store';
 import { Plus, Edit2, Trash2, Search, X, Check, Image as ImageIcon, PlusCircle, Upload, Link as LinkIcon } from 'lucide-react';
 import { Product } from '../types';
-import { saveImageToStorage, saveBase64ToStorage, getImageUrl } from '../utils/imageStorage';
 import AdminLayout from '../components/AdminLayout';
 
 const AdminProducts: React.FC = () => {
@@ -88,21 +87,45 @@ const AdminProducts: React.FC = () => {
     });
   };
 
-  const handleImageChange = async (index: number, value: string) => {
+  const handleImageChange = (index: number, value: string) => {
     const newImages = [...(formData.images || [])];
-    // Nếu là base64 URL, convert sang blob URL
-    if (value.startsWith('data:image/')) {
-      try {
-        const blobUrl = await saveBase64ToStorage(value);
-        newImages[index] = blobUrl;
-      } catch (error) {
-        console.error('Error converting base64 to blob:', error);
-        newImages[index] = value; // Fallback to original
-      }
-    } else {
-      newImages[index] = value;
-    }
+    newImages[index] = value;
     setFormData({ ...formData, images: newImages });
+  };
+
+  // Hàm nén ảnh trước khi convert sang base64
+  const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.7): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Resize nếu ảnh quá lớn
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // Convert sang base64 với chất lượng nén
+          const base64 = canvas.toDataURL('image/jpeg', quality);
+          resolve(base64);
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleImageUpload = async (index: number, file: File | null) => {
@@ -114,31 +137,21 @@ const AdminProducts: React.FC = () => {
       return;
     }
     
-    // Validate file size (max 5MB)
+    // Validate file size (max 5MB before compression)
     if (file.size > 5 * 1024 * 1024) {
       alert('Kích thước file không được vượt quá 5MB');
       return;
     }
 
     try {
-      // Upload lên server
-      const imageUrl = await productsAPI.uploadImage(file);
-      handleImageChange(index, imageUrl);
+      // Nén và convert sang base64
+      const base64String = await compressImage(file, 800, 0.7);
+      const newImages = [...(formData.images || [])];
+      newImages[index] = base64String;
+      setFormData({ ...formData, images: newImages });
     } catch (error: any) {
       console.error('Upload error:', error);
-      // Fallback: lưu vào IndexedDB nếu server không available
-      if (error.message === 'BACKEND_OFFLINE') {
-        try {
-          const blobUrl = await saveImageToStorage(file);
-          handleImageChange(index, blobUrl);
-          alert('Backend chưa chạy. Ảnh đã được lưu cục bộ. Vui lòng start backend để upload lên server.');
-        } catch (fallbackError) {
-          alert('Lỗi khi tải ảnh lên. Vui lòng kiểm tra backend server hoặc thử lại.');
-          console.error(fallbackError);
-        }
-      } else {
-        alert(`Lỗi upload: ${error.message || 'Vui lòng thử lại'}`);
-      }
+      alert('Lỗi khi tải ảnh lên. Vui lòng thử lại.');
     }
   };
 
@@ -223,10 +236,10 @@ const AdminProducts: React.FC = () => {
                     </td>
                     <td className="px-8 py-5">
                       <div className="font-black text-gray-900 text-sm">
-                        {p.harvestDate ? new Date(p.harvestDate).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}
+                        {new Date().toLocaleDateString('vi-VN')}
                       </div>
                       <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">
-                        {p.harvestDate ? Math.floor((new Date().getTime() - new Date(p.harvestDate).getTime()) / (1000 * 60 * 60 * 24)) + ' ngày trước' : ''}
+                        Hôm nay
                       </div>
                     </td>
                     <td className="px-8 py-5">

@@ -132,36 +132,84 @@ const OrderTracking: React.FC = () => {
 
         {foundOrder ? (
           <div className="space-y-6 sm:space-y-10 animate-in fade-in zoom-in duration-500">
-            {/* Status Timeline */}
-            <div className="bg-white p-8 sm:p-12 rounded-[2.5rem] sm:rounded-[4rem] shadow-sm border border-gray-100 overflow-x-auto custom-scrollbar">
-              <div className="flex justify-between items-center min-w-[700px] px-4 relative">
-                {/* Connector Line */}
-                <div className="absolute top-8 left-16 right-16 h-1 bg-gray-100 rounded-full z-0">
-                  <div 
-                    className="h-full bg-orange-600 transition-all duration-1000 ease-out rounded-full" 
-                    style={{ width: displaySteps.length > 1 ? `${(currentStepIdx / (displaySteps.length - 1)) * 100}%` : '0%' }}
-                  ></div>
+            {/* Status Timeline - Responsive: Vertical on mobile, Horizontal on desktop */}
+            <div className="bg-white p-6 sm:p-12 rounded-[2rem] sm:rounded-[4rem] shadow-sm border border-gray-100">
+              {/* Mobile: Vertical Timeline */}
+              <div className="block sm:hidden">
+                <div className="relative">
+                  {/* Vertical Line */}
+                  <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-gray-100">
+                    <div 
+                      className="w-full bg-orange-600 transition-all duration-1000 ease-out rounded-full" 
+                      style={{ height: displaySteps.length > 1 ? `${(currentStepIdx / (displaySteps.length - 1)) * 100}%` : '0%' }}
+                    ></div>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    {displaySteps.map((step, idx) => {
+                      const isActive = idx <= currentStepIdx;
+                      const isCurrent = idx === currentStepIdx;
+                      return (
+                        <div key={idx} className="flex items-center gap-4 relative">
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-md transition-all duration-500 z-10 flex-shrink-0 ${
+                            isCurrent ? 'bg-orange-600 text-white scale-110 ring-4 ring-orange-100' : 
+                            isActive ? 'bg-orange-50 text-orange-600 border-2 border-orange-200' : 
+                            'bg-white text-gray-300 border-2 border-gray-100'
+                          }`}>
+                            <step.icon className={`w-5 h-5 ${isCurrent ? 'animate-pulse' : ''}`} />
+                          </div>
+                          <div className="flex-grow">
+                            <span className={`block text-sm font-black uppercase tracking-wide ${isActive ? 'text-gray-900' : 'text-gray-300'}`}>
+                              {step.label}
+                            </span>
+                            {isCurrent && (
+                              <span className="text-[10px] font-bold text-orange-500 uppercase tracking-tight flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+                                Trạng thái hiện tại
+                              </span>
+                            )}
+                          </div>
+                          {isActive && (
+                            <CheckCircle className={`w-5 h-5 flex-shrink-0 ${isCurrent ? 'text-orange-600' : 'text-green-500'}`} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
+              </div>
 
-                {displaySteps.map((step, idx) => {
-                  const isActive = idx <= currentStepIdx;
-                  const isCurrent = idx === currentStepIdx;
-                  return (
-                    <div key={idx} className="flex flex-col items-center gap-4 relative z-10">
-                      <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-lg transition-all duration-500 ${
-                        isCurrent ? 'bg-orange-600 text-white scale-110' : 
-                        isActive ? 'bg-orange-50 text-orange-600' : 
-                        'bg-white text-gray-200 border-2 border-gray-50'
-                      }`}>
-                        <step.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${isCurrent ? 'animate-pulse' : ''}`} />
+              {/* Desktop: Horizontal Timeline */}
+              <div className="hidden sm:block">
+                <div className="flex justify-between items-center px-4 relative">
+                  {/* Connector Line */}
+                  <div className="absolute top-8 left-16 right-16 h-1 bg-gray-100 rounded-full z-0">
+                    <div 
+                      className="h-full bg-orange-600 transition-all duration-1000 ease-out rounded-full" 
+                      style={{ width: displaySteps.length > 1 ? `${(currentStepIdx / (displaySteps.length - 1)) * 100}%` : '0%' }}
+                    ></div>
+                  </div>
+
+                  {displaySteps.map((step, idx) => {
+                    const isActive = idx <= currentStepIdx;
+                    const isCurrent = idx === currentStepIdx;
+                    return (
+                      <div key={idx} className="flex flex-col items-center gap-4 relative z-10">
+                        <div className={`w-16 h-16 rounded-3xl flex items-center justify-center shadow-lg transition-all duration-500 ${
+                          isCurrent ? 'bg-orange-600 text-white scale-110' : 
+                          isActive ? 'bg-orange-50 text-orange-600' : 
+                          'bg-white text-gray-200 border-2 border-gray-50'
+                        }`}>
+                          <step.icon className={`w-8 h-8 ${isCurrent ? 'animate-pulse' : ''}`} />
+                        </div>
+                        <div className="text-center">
+                          <span className={`block text-[10px] font-black uppercase tracking-widest leading-none mb-1 ${isActive ? 'text-gray-900' : 'text-gray-300'}`}>{step.label}</span>
+                          {isCurrent && <span className="text-[8px] font-bold text-orange-500 uppercase tracking-tighter">Đang ở bước này</span>}
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <span className={`block text-[10px] font-black uppercase tracking-widest leading-none mb-1 ${isActive ? 'text-gray-900' : 'text-gray-300'}`}>{step.label}</span>
-                        {isCurrent && <span className="text-[8px] font-bold text-orange-500 uppercase tracking-tighter">Đang ở bước này</span>}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
