@@ -139,7 +139,7 @@ const Home: React.FC = () => {
             <div className="space-y-4 md:space-y-6 animate-in fade-in zoom-in-95 duration-1000 delay-300">
               <div className="flex flex-col sm:flex-row flex-wrap gap-4 md:gap-6">
                 <Link to="/products" className="bg-white text-orange-600 hover:bg-orange-50 px-8 md:px-10 py-4 md:py-5 rounded-2xl font-black transition-all shadow-2xl flex items-center justify-center gap-2 text-sm md:text-lg uppercase tracking-widest group w-full sm:w-auto">
-                  <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" /> Mua Sắm Ngay
+                  <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" /> Đặt Hàng Ngay
                 </Link>
                 <Link to="/track-order" className="bg-orange-950/30 backdrop-blur-md text-white border border-white/30 hover:bg-white hover:text-orange-600 px-8 md:px-10 py-4 md:py-5 rounded-2xl font-black transition-all flex items-center justify-center gap-2 text-sm md:text-lg uppercase tracking-widest group w-full sm:w-auto">
                   <Search className="w-5 h-5 group-hover:rotate-12 transition-transform" /> Tra Cứu Đơn Hàng
